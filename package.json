@@ -1,0 +1,73 @@
+{
+  "name": "malamal",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "author": {
+    "name": "Khaled Siddique",
+    "email": "khaledssbd@gmail.com",
+    "url": "https://khaled-siddique.vercel.app"
+  },
+  "description": "Malamal: A high-performance, mobile-first e-commerce and price comparison engine. Built with the MERN stack and Next.js, it enables users to discover real-time deals and compare product prices across various retailers to maximize savings.",
+  "keywords": [
+    "malamal",
+    "ecommerce-platform",
+    "price-comparison",
+    "real-time-deals",
+    "nextjs",
+    "typescript",
+    "expressjs",
+    "mongodb",
+    "mongoose",
+    "fullstack-web-development",
+    "smart-shopping",
+    "backend-architecture"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khaledssbd/Malamal-SV.git"
+  },
+  "bugs": {
+    "url": "https://github.com/khaledssbd/Malamal-SV/issues"
+  },
+  "homepage": "https://github.com/khaledssbd/Malamal-SV#readme",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest run",
+    "format": "prettier . --write"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "input-otp": "^1.4.2",
+    "jwt-decode": "^4.0.0",
+    "lucide-react": "^1.16.0",
+    "next": "16.2.6",
+    "radix-ui": "^1.4.3",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "react-hook-form": "^7.76.1",
+    "shadcn": "^4.8.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.6.0",
+    "tw-animate-css": "^1.4.0",
+    "use-debounce": "^10.1.1",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.13"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.0",
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "eslint": "^10.4.0",
+    "eslint-config-next": "16.2.6",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7"
+  }
+}

@@ -1,0 +1,1 @@
+export const CATALOG_REVALIDATE_SECONDS = 300;

@@ -1,0 +1,112 @@
+name: Deploy Malamal Frontend to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-malamal-frontend
+  cancel-in-progress: true
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ১. রানারের ভার্চুয়াল মেশিনে কোড নিয়ে আসা
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ২. রানারে Node.js সেটআপ করা
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ৩. রানারে pnpm সেটআপ করা
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      # ৪. রানারে ডিপেন্ডেন্সি ইন্সটল করা (টেস্ট করার জন্য প্রয়োজন)
+      - name: Install dependencies on runner
+        run: pnpm install
+
+      # ৫. রানারে টেস্ট স্ক্রিপ্ট চালানো
+      # আপনার package.json-এ 'test' স্ক্রিপ্ট থাকতে হবে
+      - name: Run Tests
+        run: pnpm test
+
+      # ৬. টেস্ট পাস হলে তবেই কেবল SSH-এর মাধ্যমে VPS-এ ডিপ্লয়মেন্ট শুরু হবে
+      - name: Deploy over SSH
+        if: success() # আগের ধাপগুলো সফল হলেই এটি চলবে
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -euo pipefail
+
+            echo "==> Variables declaration"
+            # ভ্যারিয়েবল ডিক্লেয়ারেশন
+            APP_DIR="/var/www/MalaMal_Frontend"
+            APP_NAME="malamal-frontend"
+
+            echo "==> Updating packages"
+            sudo apt update -y
+            sudo apt install -y git curl
+
+            echo "==> Checking/Installing pnpm and pm2"
+            if ! command -v pnpm >/dev/null 2>&1; then sudo npm install -g pnpm; fi
+            if ! command -v pm2 >/dev/null 2>&1; then sudo npm install -g pm2; fi
+            export PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true
+
+            echo "==> Preparing app directory"
+            sudo mkdir -p "$APP_DIR"
+            sudo chown -R $USER:$USER "$APP_DIR"
+            cd "$APP_DIR" || exit
+
+            echo "==> Updating source code"
+            if [ ! -d ".git" ]; then 
+              git clone -b main ${{ secrets.FRONTEND_REPO_URL }} .
+            else
+              git remote set-url origin ${{ secrets.FRONTEND_REPO_URL }}
+              git fetch origin main
+              git reset --hard origin/main
+              git clean -fd
+            fi
+
+            echo "==> Cleaning previous build and dependencies"
+            rm -rf .next node_modules
+
+            echo "==> Creating .env file"
+            # এখানে সরাসরি সিক্রেট ব্যবহার করা হয়েছে, যা সেফ
+            cat <<EOF > .env
+            ${{ secrets.FRONTEND_ENV_FILE }}
+            EOF
+
+            echo "==> Installing dependencies"
+            # --frozen-lockfile নিশ্চিত করে যে ভার্সন পরিবর্তন হবে না
+            pnpm install --frozen-lockfile
+
+            echo "==> Building Next.js app"
+            pnpm build
+
+            echo "==> Starting/Reloading with PM2"
+            # জিরো ডাউনটাইম রিলোড চেষ্টা করবে, না থাকলে নতুন শুরু করবে
+            pm2 describe $APP_NAME > /dev/null 2>&1
+            if [ $? -eq 0 ]; then 
+              echo "Existing app found. Reloading..."
+              pm2 reload $APP_NAME
+            else
+              echo "Starting new PM2 process..."
+              pm2 start pnpm --name "$APP_NAME" -- start; fi
+
+            pm2 save
+            echo "==> Frontend deploy success!"
+            pm2 status
