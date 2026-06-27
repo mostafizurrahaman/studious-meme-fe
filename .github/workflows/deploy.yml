@@ -72,10 +72,14 @@ jobs:
             cd "$APP_DIR" || exit
 
             echo "==> Updating source code"
-            if [ ! -d ".git" ]; then 
-              git clone -b main ${{ secrets.FRONTEND_REPO_URL }} .
+            if [ ! -d ".git" ]; then
+            git clone -b main "${{ secrets.REPO_URL }}" .
             else
-              git remote set-url origin ${{ secrets.FRONTEND_REPO_URL }}
+              if git remote get-url origin >/dev/null 2>&1; then
+                git remote set-url origin "${{ secrets.REPO_URL }}"
+              else
+                git remote add origin "${{ secrets.REPO_URL }}"
+              fi
               git fetch origin main
               git reset --hard origin/main
               git clean -fd
