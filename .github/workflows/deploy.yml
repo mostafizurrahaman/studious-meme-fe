@@ -86,12 +86,12 @@ jobs:
             fi
 
             echo "==> Cleaning previous build and dependencies"
-            rm -rf .next node_modules
+            sudo rm -rf .next/cache node_modules
 
             echo "==> Creating .env file"
             # এখানে সরাসরি সিক্রেট ব্যবহার করা হয়েছে, যা সেফ
             cat <<EOF > .env
-            ${{ secrets.FRONTEND_ENV_FILE }}
+            ${{ secrets.ENV_FILE }}
             EOF
 
             echo "==> Installing dependencies"
