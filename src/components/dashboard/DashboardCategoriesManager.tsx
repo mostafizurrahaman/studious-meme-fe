@@ -58,6 +58,8 @@ type CategoryRow = {
   image?: string;
   description?: string;
   accent?: string;
+  metaTitle?: string;
+  metaDescription?: string;
   totalNews?: number;
   isActive?: boolean;
   createdAt?: string;
@@ -111,14 +113,14 @@ function AccentColorField({
         <input
           type="color"
           value={colorValue}
-          onChange={(event) => onChange(event.target.value)}
+          onChange={event => onChange(event.target.value)}
           className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           aria-label="Pick accent color"
         />
       </label>
       <DashboardInput
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={event => onChange(event.target.value)}
         placeholder={placeholder}
         className="h-fit min-w-0 flex-1 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
       />
@@ -140,6 +142,8 @@ const categoryEditSchema = z.object({
     .trim()
     .min(1, { message: 'Category description is required!' }),
   accent: z.string().trim().optional(),
+  metaTitle: z.string().trim().optional(),
+  metaDescription: z.string().trim().optional(),
 });
 
 const subCategoryEditSchema = z.object({
@@ -236,6 +240,8 @@ export function DashboardCategoriesManager({
     slug: string;
     description: string;
     accent: string;
+    metaTitle: string;
+    metaDescription: string;
   }>({
     resolver: makeZodResolver(
       z.object({
@@ -252,9 +258,18 @@ export function DashboardCategoriesManager({
           .trim()
           .min(1, { message: 'Category description is required!' }),
         accent: z.string().trim().optional(),
+        metaTitle: z.string().trim().optional(),
+        metaDescription: z.string().trim().optional(),
       }),
     ),
-    defaultValues: { name: '', slug: '', description: '', accent: '' },
+    defaultValues: {
+      name: '',
+      slug: '',
+      description: '',
+      accent: '',
+      metaTitle: '',
+      metaDescription: '',
+    },
     mode: 'onTouched',
   });
 
@@ -268,7 +283,14 @@ export function DashboardCategoriesManager({
 
   const categoryEditForm = useForm<CategoryEditValues>({
     resolver: makeZodResolver(categoryEditSchema),
-    defaultValues: { name: '', slug: '', description: '', accent: '' },
+    defaultValues: {
+      name: '',
+      slug: '',
+      description: '',
+      accent: '',
+      metaTitle: '',
+      metaDescription: '',
+    },
     mode: 'onTouched',
   });
 
@@ -296,7 +318,6 @@ export function DashboardCategoriesManager({
     useWatch({ control: subCategoryEditForm.control, name: 'isActive' }) ??
     true;
 
-  // const visibleCategories = useMemo(() => categories.slice(0, 24), [categories]);
   const visibleCategories = useMemo(() => categories, [categories]);
 
   useEffect(() => {
@@ -307,10 +328,10 @@ export function DashboardCategoriesManager({
         editingSubCategoryImagePreview,
       ]
         .filter((src): src is string => Boolean(src) && src.startsWith('blob:'))
-        .forEach((src) => URL.revokeObjectURL(src));
+        .forEach(src => URL.revokeObjectURL(src));
       Object.values(subCategoryImagePreviews)
         .filter((src): src is string => Boolean(src) && src.startsWith('blob:'))
-        .forEach((src) => URL.revokeObjectURL(src));
+        .forEach(src => URL.revokeObjectURL(src));
     };
   }, [
     categoryImagePreview,
@@ -385,7 +406,7 @@ export function DashboardCategoriesManager({
   }
 
   function handleNewSubCategoryNameChange(categorySlug: string, value: string) {
-    setNewSubCategory((current) => {
+    setNewSubCategory(current => {
       const existing = current[categorySlug] ?? {
         name: '',
         slug: '',
@@ -403,18 +424,18 @@ export function DashboardCategoriesManager({
         },
       };
     });
-    setNewSubCategoryErrors((current) => ({
+    setNewSubCategoryErrors(current => ({
       ...current,
       [categorySlug]: { ...current[categorySlug], name: '' },
     }));
   }
 
   function handleNewSubCategorySlugChange(categorySlug: string, value: string) {
-    setNewSubCategorySlugAutoSync((current) => ({
+    setNewSubCategorySlugAutoSync(current => ({
       ...current,
       [categorySlug]: false,
     }));
-    setNewSubCategory((current) => {
+    setNewSubCategory(current => {
       const existing = current[categorySlug] ?? {
         name: '',
         slug: '',
@@ -430,7 +451,7 @@ export function DashboardCategoriesManager({
         },
       };
     });
-    setNewSubCategoryErrors((current) => ({
+    setNewSubCategoryErrors(current => ({
       ...current,
       [categorySlug]: { ...current[categorySlug], slug: '' },
     }));
@@ -449,7 +470,7 @@ export function DashboardCategoriesManager({
     categorySlug: string,
     value: string,
   ) {
-    setNewSubCategory((current) => {
+    setNewSubCategory(current => {
       const existing = current[categorySlug] ?? {
         name: '',
         slug: '',
@@ -494,11 +515,11 @@ export function DashboardCategoriesManager({
     if (!file) return;
     const current = subCategoryImagePreviews[categorySlug] ?? '';
     if (current.startsWith('blob:')) URL.revokeObjectURL(current);
-    setSubCategoryImageFiles((currentFiles) => ({
+    setSubCategoryImageFiles(currentFiles => ({
       ...currentFiles,
       [categorySlug]: file,
     }));
-    setSubCategoryImagePreviews((currentPreviews) => ({
+    setSubCategoryImagePreviews(currentPreviews => ({
       ...currentPreviews,
       [categorySlug]: URL.createObjectURL(file),
     }));
@@ -529,7 +550,7 @@ export function DashboardCategoriesManager({
       return;
     }
 
-    categoryCreateForm.handleSubmit(async (values) => {
+    categoryCreateForm.handleSubmit(async values => {
       startTransition(async () => {
         const result = await createCategory({
           name: values.name.trim(),
@@ -537,7 +558,11 @@ export function DashboardCategoriesManager({
           image: categoryImageFile,
           description: values.description?.trim() ?? '',
           accent: values.accent?.trim() || undefined,
+          metaTitle: values.metaTitle?.trim() || undefined,
+          metaDescription: values.metaDescription?.trim() || undefined,
         });
+
+        
 
         if (!result?.success) {
           refreshWithToast(
@@ -552,6 +577,8 @@ export function DashboardCategoriesManager({
           slug: '',
           description: '',
           accent: '',
+          metaTitle: '',
+          metaDescription: '',
         });
         setCategoryImageFile(null);
         setCategoryImagePreview('');
@@ -608,6 +635,8 @@ export function DashboardCategoriesManager({
       slug: category.slug ?? '',
       description: category.description ?? '',
       accent: category.accent ?? '',
+      metaTitle: category.metaTitle ?? '',
+      metaDescription: category.metaDescription ?? '',
     });
     setEditingCategoryImageFile(null);
     setEditingCategoryImagePreview(category.image ?? '');
@@ -616,7 +645,14 @@ export function DashboardCategoriesManager({
 
   function stopEditingCategory() {
     setEditingSlug(null);
-    categoryEditForm.reset({ name: '', slug: '', description: '', accent: '' });
+    categoryEditForm.reset({
+      name: '',
+      slug: '',
+      description: '',
+      accent: '',
+      metaTitle: '',
+      metaDescription: '',
+    });
     setEditingCategoryImageFile(null);
     setEditingCategoryImagePreview('');
     setEditingSlugAutoSync(true);
@@ -628,7 +664,7 @@ export function DashboardCategoriesManager({
       return;
     }
 
-    categoryEditForm.handleSubmit(async (values) => {
+    categoryEditForm.handleSubmit(async values => {
       startTransition(async () => {
         const result = await updateCategory(slug, {
           name: values.name.trim(),
@@ -636,6 +672,8 @@ export function DashboardCategoriesManager({
           description: values.description?.trim() ?? '',
           accent: values.accent?.trim() || undefined,
           image: editingCategoryImageFile ?? undefined,
+          metaTitle: values.metaTitle?.trim() || undefined,
+          metaDescription: values.metaDescription?.trim() || undefined,
         });
 
         if (!result?.success) {
@@ -678,14 +716,14 @@ export function DashboardCategoriesManager({
     }
 
     if (Object.keys(nextErrors).length > 0) {
-      setNewSubCategoryErrors((current) => ({
+      setNewSubCategoryErrors(current => ({
         ...current,
         [categorySlug]: { ...current[categorySlug], ...nextErrors },
       }));
       return;
     }
 
-    setNewSubCategoryErrors((current) => ({
+    setNewSubCategoryErrors(current => ({
       ...current,
       [categorySlug]: { name: '', slug: '', description: '' },
     }));
@@ -708,23 +746,23 @@ export function DashboardCategoriesManager({
         return;
       }
 
-      setNewSubCategory((current) => ({
+      setNewSubCategory(current => ({
         ...current,
         [categorySlug]: { name: '', slug: '', description: '', accent: '' },
       }));
-      setNewSubCategoryErrors((current) => ({
+      setNewSubCategoryErrors(current => ({
         ...current,
         [categorySlug]: { name: '', slug: '', description: '' },
       }));
-      setNewSubCategorySlugAutoSync((current) => ({
+      setNewSubCategorySlugAutoSync(current => ({
         ...current,
         [categorySlug]: true,
       }));
-      setSubCategoryImageFiles((current) => ({
+      setSubCategoryImageFiles(current => ({
         ...current,
         [categorySlug]: null,
       }));
-      setSubCategoryImagePreviews((current) => ({
+      setSubCategoryImagePreviews(current => ({
         ...current,
         [categorySlug]: '',
       }));
@@ -775,7 +813,7 @@ export function DashboardCategoriesManager({
       return;
     }
 
-    subCategoryEditForm.handleSubmit(async (values) => {
+    subCategoryEditForm.handleSubmit(async values => {
       startTransition(async () => {
         const result = await updateCategorySubCategory(
           categorySlug,
@@ -876,137 +914,236 @@ export function DashboardCategoriesManager({
 
   return (
     <div className="space-y-6">
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle>Categories</CardTitle>
-          <CardDescription>
-            {categories.length} categories loaded from backend. Create, rename,
-            or remove entries here.
-          </CardDescription>
+      {/* Modernized Category Creation Card */}
+      <Card className="border border-border/60 shadow-md overflow-hidden bg-card/60 backdrop-blur-md">
+        <CardHeader className="border-b border-border/40 bg-muted/20 px-6 py-4">
+          <div>
+            <CardTitle className="text-xl font-bold tracking-tight text-foreground">
+              Categories
+            </CardTitle>
+            <CardDescription className="text-sm text-muted-foreground mt-1">
+              {categories.length} categories configured in system. Define,
+              configure, or optimize hierarchies here.
+            </CardDescription>
+          </div>
         </CardHeader>
-        <CardContent className="grid items-start gap-3 lg:grid-cols-[1fr_1fr_1fr_1fr] xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1.1fr)_minmax(0,0.95fr)_minmax(0,1.1fr)_minmax(280px,1fr)_auto]">
-          <div className="grid gap-1.5">
-            <DashboardInput
-              placeholder="Create category"
-              {...categoryCreateForm.register('name', {
-                onChange: (event) =>
-                  handleNewCategoryNameChange(event.target.value),
-              })}
-            />
-            <ErrorText
-              message={categoryCreateForm.formState.errors.name?.message}
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <DashboardInput
-              placeholder="Category slug"
-              {...categoryCreateForm.register('slug', {
-                onChange: (event) =>
-                  handleNewCategorySlugChange(event.target.value),
-              })}
-            />
-            <ErrorText
-              message={categoryCreateForm.formState.errors.slug?.message}
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <AccentColorField
-              value={categoryCreateAccent}
-              onChange={(value) =>
-                categoryCreateForm.setValue('accent', value, {
-                  shouldValidate: true,
-                })
-              }
-              placeholder="Category accent hex"
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <DashboardInput
-              {...categoryCreateForm.register('description')}
-              placeholder="Category description"
-            />
-            <ErrorText
-              message={categoryCreateForm.formState.errors.description?.message}
-            />
-          </div>
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => categoryImageInputRef.current?.click()}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                categoryImageInputRef.current?.click();
-              }
-            }}
-            onDragOver={(event) => {
-              event.preventDefault();
-              setCategoryDragging(true);
-            }}
-            onDragLeave={() => setCategoryDragging(false)}
-            onDrop={(event) => {
-              event.preventDefault();
-              setCategoryDragging(false);
-              handleCategoryImageSelect(event.dataTransfer.files?.[0]);
-            }}
-            className={`self-start rounded-2xl border-2 border-dashed p-3 transition ${
-              categoryDragging
-                ? 'border-primary bg-primary/5'
-                : 'border-border/70 bg-background/80 hover:border-primary/40'
-            }`}
-          >
-            <div className="flex items-start gap-3">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <UploadCloud className="size-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-semibold text-foreground">
-                  Category image
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Drag and drop or click to add.
-                </p>
-                <div className="mt-2 overflow-hidden rounded-xl border bg-muted">
-                  {categoryImagePreview ? (
-                    <Image
-                      height={500}
-                      width={500}
-                      src={categoryImagePreview}
-                      alt="Category preview"
-                      className="h-24 w-full object-cover"
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {/* Input fields panel */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* General Settings Section */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border/30 pb-2">
+                  General Configurations
+                </h3>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="grid gap-1.5">
+                    <label className="text-xs font-medium text-foreground">
+                      Category Name
+                    </label>
+                    <DashboardInput
+                      placeholder="Enter category name"
+                      {...categoryCreateForm.register('name', {
+                        onChange: event =>
+                          handleNewCategoryNameChange(event.target.value),
+                      })}
                     />
-                  ) : (
-                    <div className="flex h-24 items-center justify-center gap-2 text-sm text-muted-foreground">
-                      <ImagePlus className="size-4" />
-                      Preview will appear here
-                    </div>
-                  )}
+                    <ErrorText
+                      message={
+                        categoryCreateForm.formState.errors.name?.message
+                      }
+                    />
+                  </div>
+
+                  <div className="grid gap-1.5">
+                    <label className="text-xs font-medium text-foreground">
+                      Slug URL
+                    </label>
+                    <DashboardInput
+                      placeholder="e.g. general-news"
+                      {...categoryCreateForm.register('slug', {
+                        onChange: event =>
+                          handleNewCategorySlugChange(event.target.value),
+                      })}
+                    />
+                    <ErrorText
+                      message={
+                        categoryCreateForm.formState.errors.slug?.message
+                      }
+                    />
+                  </div>
+
+                  <div className="grid gap-1.5">
+                    <label className="text-xs font-medium text-foreground">
+                      Accent Color
+                    </label>
+                    <AccentColorField
+                      value={categoryCreateAccent}
+                      onChange={value =>
+                        categoryCreateForm.setValue('accent', value, {
+                          shouldValidate: true,
+                        })
+                      }
+                      placeholder="Category accent hex"
+                    />
+                  </div>
+
+                  <div className="grid gap-1.5">
+                    <label className="text-xs font-medium text-foreground">
+                      Description
+                    </label>
+                    <DashboardInput
+                      {...categoryCreateForm.register('description')}
+                      placeholder="Description of the category"
+                    />
+                    <ErrorText
+                      message={
+                        categoryCreateForm.formState.errors.description?.message
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SEO Configurations Section */}
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center gap-2 border-b border-border/30 pb-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    SEO Metadata
+                  </h3>
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] px-1.5 py-0 font-normal"
+                  >
+                    Optional
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="grid gap-1.5">
+                    <label className="text-xs font-medium text-foreground">
+                      Meta Title
+                    </label>
+                    <DashboardInput
+                      placeholder="SEO Title (recommended < 60 characters)"
+                      {...categoryCreateForm.register('metaTitle')}
+                    />
+                    <ErrorText
+                      message={
+                        categoryCreateForm.formState.errors.metaTitle?.message
+                      }
+                    />
+                  </div>
+
+                  <div className="grid gap-1.5">
+                    <label className="text-xs font-medium text-foreground">
+                      Meta Description
+                    </label>
+                    <DashboardInput
+                      placeholder="SEO Description (recommended < 160 characters)"
+                      {...categoryCreateForm.register('metaDescription')}
+                    />
+                    <ErrorText
+                      message={
+                        categoryCreateForm.formState.errors.metaDescription
+                          ?.message
+                      }
+                    />
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Drag and Drop Cover Image & Actions Panel */}
+            <div className="flex flex-col justify-between space-y-6 lg:border-l lg:border-border/40 lg:pl-6">
+              <div className="space-y-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border/30 pb-2 lg:border-0 lg:pb-0">
+                  Media Attachment
+                </h3>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => categoryImageInputRef.current?.click()}
+                  onKeyDown={event => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      categoryImageInputRef.current?.click();
+                    }
+                  }}
+                  onDragOver={event => {
+                    event.preventDefault();
+                    setCategoryDragging(true);
+                  }}
+                  onDragLeave={() => setCategoryDragging(false)}
+                  onDrop={event => {
+                    event.preventDefault();
+                    setCategoryDragging(false);
+                    handleCategoryImageSelect(event.dataTransfer.files?.[0]);
+                  }}
+                  className={`group relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 transition-all duration-200 cursor-pointer ${
+                    categoryDragging
+                      ? 'border-primary bg-primary/5 scale-[0.99]'
+                      : 'border-border/70 bg-background/50 hover:border-primary/50 hover:bg-muted/10'
+                  }`}
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-3 shadow-sm transition group-hover:scale-105">
+                      <UploadCloud className="size-5" />
+                    </div>
+                    <div className="text-sm font-semibold text-foreground">
+                      Cover Artwork
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">
+                      Drag and drop image or click viewport to browse files.
+                    </p>
+                  </div>
+
+                  <div className="mt-4 w-full overflow-hidden rounded-xl border bg-muted/40">
+                    {categoryImagePreview ? (
+                      <div className="relative h-28 w-full">
+                        <Image
+                          height={500}
+                          width={500}
+                          src={categoryImagePreview}
+                          alt="Category preview"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex h-28 items-center justify-center gap-2 text-xs text-muted-foreground bg-muted/10">
+                        <ImagePlus className="size-4" />
+                        Preview Container
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <input
+                ref={categoryImageInputRef}
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={event => {
+                  handleCategoryImageSelect(event.target.files?.[0]);
+                  event.currentTarget.value = '';
+                }}
+              />
+
+              <Button
+                type="button"
+                disabled={isPending}
+                onClick={handleCreate}
+                className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-colors py-5 text-sm font-medium rounded-xl"
+              >
+                <Plus className="size-4" />
+                Add Category
+              </Button>
+            </div>
           </div>
-          <input
-            ref={categoryImageInputRef}
-            type="file"
-            accept="image/*"
-            className="sr-only"
-            onChange={(event) => {
-              handleCategoryImageSelect(event.target.files?.[0]);
-              event.currentTarget.value = '';
-            }}
-          />
-          <Button
-            type="button"
-            disabled={isPending}
-            onClick={handleCreate}
-            className="justify-self-start gap-2 bg-primary text-primary-foreground hover:bg-primary/70 xl:mt-6"
-          >
-            <Plus className="size-4" />
-            Add category
-          </Button>
         </CardContent>
       </Card>
 
+      {/* Main Categories Management Table list */}
       <Card className="shadow-sm">
         <CardContent className="pt-6">
           <Table>
@@ -1018,6 +1155,8 @@ export function DashboardCategoriesManager({
                 <TableHead>Slug</TableHead>
                 <TableHead>Accent</TableHead>
                 <TableHead>Description</TableHead>
+                <TableHead>Meta Title</TableHead>
+                <TableHead>Meta Description</TableHead>
                 <TableHead>Items</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead>Updated At</TableHead>
@@ -1030,7 +1169,9 @@ export function DashboardCategoriesManager({
                 const isEditing = editingSlug === category.slug;
 
                 return (
-                  <Fragment key={category.slug ?? getCategoryDisplayName(category)}>
+                  <Fragment
+                    key={category.slug ?? getCategoryDisplayName(category)}
+                  >
                     <TableRow>
                       <TableCell className="w-14 font-medium text-muted-foreground">
                         {categoryIndex + 1}
@@ -1044,7 +1185,7 @@ export function DashboardCategoriesManager({
                               onClick={() =>
                                 editingCategoryImageInputRef.current?.click()
                               }
-                              onKeyDown={(event) => {
+                              onKeyDown={event => {
                                 if (
                                   event.key === 'Enter' ||
                                   event.key === ' '
@@ -1053,14 +1194,14 @@ export function DashboardCategoriesManager({
                                   editingCategoryImageInputRef.current?.click();
                                 }
                               }}
-                              onDragOver={(event) => {
+                              onDragOver={event => {
                                 event.preventDefault();
                                 setEditingCategoryDragging(true);
                               }}
                               onDragLeave={() =>
                                 setEditingCategoryDragging(false)
                               }
-                              onDrop={(event) => {
+                              onDrop={event => {
                                 event.preventDefault();
                                 setEditingCategoryDragging(false);
                                 handleEditingCategoryImageSelect(
@@ -1097,7 +1238,7 @@ export function DashboardCategoriesManager({
                               type="file"
                               accept="image/*"
                               className="sr-only"
-                              onChange={(event) => {
+                              onChange={event => {
                                 handleEditingCategoryImageSelect(
                                   event.target.files?.[0],
                                 );
@@ -1129,7 +1270,7 @@ export function DashboardCategoriesManager({
                             variant="ghost"
                             className="h-7 px-2"
                             onClick={() =>
-                              setExpandedSlug((current) =>
+                              setExpandedSlug(current =>
                                 current === category.slug
                                   ? null
                                   : (category.slug ?? null),
@@ -1149,7 +1290,7 @@ export function DashboardCategoriesManager({
                                 placeholder="Category name"
                                 className="max-w-full"
                                 {...categoryEditForm.register('name', {
-                                  onChange: (event) =>
+                                  onChange: event =>
                                     handleEditingCategoryNameChange(
                                       event.target.value,
                                     ),
@@ -1163,7 +1304,7 @@ export function DashboardCategoriesManager({
                               />
                             </div>
                           ) : (
-                          getCategoryDisplayName(category)
+                            getCategoryDisplayName(category)
                           )}
                         </div>
                       </TableCell>
@@ -1177,7 +1318,7 @@ export function DashboardCategoriesManager({
                               placeholder="Category slug"
                               className="max-w-full"
                               {...categoryEditForm.register('slug', {
-                                onChange: (event) =>
+                                onChange: event =>
                                   handleEditingCategorySlugChange(
                                     event.target.value,
                                   ),
@@ -1197,11 +1338,11 @@ export function DashboardCategoriesManager({
                         {isEditing ? (
                           <div className="grid gap-1.5">
                             <label className="text-[11px] font-medium text-muted-foreground">
-                              Accent
+                              Accent Hex
                             </label>
                             <AccentColorField
                               value={categoryEditAccent}
-                              onChange={(value) =>
+                              onChange={value =>
                                 categoryEditForm.setValue('accent', value, {
                                   shouldValidate: true,
                                 })
@@ -1232,6 +1373,50 @@ export function DashboardCategoriesManager({
                           </div>
                         ) : (
                           sliceText(category.description)
+                        )}
+                      </TableCell>
+                      {/* Meta Title Column */}
+                      <TableCell className="min-w-0 max-w-44 text-sm text-muted-foreground">
+                        {isEditing ? (
+                          <div className="grid gap-1.5">
+                            <label className="text-[11px] font-medium text-muted-foreground">
+                              Meta Title
+                            </label>
+                            <DashboardInput
+                              placeholder="SEO Title"
+                              {...categoryEditForm.register('metaTitle')}
+                            />
+                            <ErrorText
+                              message={
+                                categoryEditForm.formState.errors.metaTitle
+                                  ?.message
+                              }
+                            />
+                          </div>
+                        ) : (
+                          sliceText(category.metaTitle)
+                        )}
+                      </TableCell>
+                      {/* Meta Description Column */}
+                      <TableCell className="min-w-0 max-w-60 text-sm text-muted-foreground">
+                        {isEditing ? (
+                          <div className="grid gap-1.5">
+                            <label className="text-[11px] font-medium text-muted-foreground">
+                              Meta Description
+                            </label>
+                            <DashboardInput
+                              placeholder="SEO Description"
+                              {...categoryEditForm.register('metaDescription')}
+                            />
+                            <ErrorText
+                              message={
+                                categoryEditForm.formState.errors
+                                  .metaDescription?.message
+                              }
+                            />
+                          </div>
+                        ) : (
+                          sliceText(category.metaDescription)
                         )}
                       </TableCell>
                       <TableCell>
@@ -1310,7 +1495,7 @@ export function DashboardCategoriesManager({
                     </TableRow>
                     {expandedSlug === category.slug ? (
                       <TableRow>
-                        <TableCell colSpan={11}>
+                        <TableCell colSpan={13}>
                           <div className="space-y-4 rounded-xl border bg-muted/20 p-4">
                             <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
                               <div className="grid gap-1.5">
@@ -1320,7 +1505,7 @@ export function DashboardCategoriesManager({
                                     newSubCategory[category.slug ?? '']?.name ??
                                     ''
                                   }
-                                  onChange={(event) =>
+                                  onChange={event =>
                                     handleNewSubCategoryNameChange(
                                       category.slug ?? '',
                                       event.target.value,
@@ -1341,7 +1526,7 @@ export function DashboardCategoriesManager({
                                     newSubCategory[category.slug ?? '']?.slug ??
                                     ''
                                   }
-                                  onChange={(event) =>
+                                  onChange={event =>
                                     handleNewSubCategorySlugChange(
                                       category.slug ?? '',
                                       event.target.value,
@@ -1361,7 +1546,7 @@ export function DashboardCategoriesManager({
                                     newSubCategory[category.slug ?? '']
                                       ?.accent ?? ''
                                   }
-                                  onChange={(value) =>
+                                  onChange={value =>
                                     handleNewSubCategoryAccentChange(
                                       category.slug ?? '',
                                       value,
@@ -1377,8 +1562,8 @@ export function DashboardCategoriesManager({
                                     newSubCategory[category.slug ?? '']
                                       ?.description ?? ''
                                   }
-                                  onChange={(event) => {
-                                    setNewSubCategory((current) => ({
+                                  onChange={event => {
+                                    setNewSubCategory(current => ({
                                       ...current,
                                       [category.slug ?? '']: {
                                         ...(current[category.slug ?? ''] ?? {
@@ -1390,7 +1575,7 @@ export function DashboardCategoriesManager({
                                         description: event.target.value,
                                       },
                                     }));
-                                    setNewSubCategoryErrors((current) => ({
+                                    setNewSubCategoryErrors(current => ({
                                       ...current,
                                       [category.slug ?? '']: {
                                         ...current[category.slug ?? ''],
@@ -1434,7 +1619,7 @@ export function DashboardCategoriesManager({
                               </div>
                               <label
                                 htmlFor={`subcategory-image-${category.slug ?? 'root'}`}
-                                onDragOver={(event) => {
+                                onDragOver={event => {
                                   event.preventDefault();
                                   setSubCategoryDraggingKey(
                                     category.slug ?? '',
@@ -1443,7 +1628,7 @@ export function DashboardCategoriesManager({
                                 onDragLeave={() =>
                                   setSubCategoryDraggingKey(null)
                                 }
-                                onDrop={(event) => {
+                                onDrop={event => {
                                   event.preventDefault();
                                   setSubCategoryDraggingKey(null);
                                   handleSubCategoryImageSelect(
@@ -1488,7 +1673,7 @@ export function DashboardCategoriesManager({
                                 type="file"
                                 accept="image/*"
                                 className="sr-only"
-                                onChange={(event) => {
+                                onChange={event => {
                                   handleSubCategoryImageSelect(
                                     category.slug ?? '',
                                     event.target.files?.[0],
@@ -1538,7 +1723,7 @@ export function DashboardCategoriesManager({
                                                   {...subCategoryEditForm.register(
                                                     'name',
                                                     {
-                                                      onChange: (event) =>
+                                                      onChange: event =>
                                                         handleEditingSubCategoryNameChange(
                                                           event.target.value,
                                                         ),
@@ -1559,7 +1744,7 @@ export function DashboardCategoriesManager({
                                                   {...subCategoryEditForm.register(
                                                     'slug',
                                                     {
-                                                      onChange: (event) =>
+                                                      onChange: event =>
                                                         handleEditingSubCategorySlugChange(
                                                           event.target.value,
                                                         ),
@@ -1576,7 +1761,7 @@ export function DashboardCategoriesManager({
                                               </div>
                                               <AccentColorField
                                                 value={subCategoryEditAccent}
-                                                onChange={(value) =>
+                                                onChange={value =>
                                                   subCategoryEditForm.setValue(
                                                     'accent',
                                                     value,
@@ -1593,7 +1778,7 @@ export function DashboardCategoriesManager({
                                                     ? 'true'
                                                     : 'false'
                                                 }
-                                                onChange={(event) =>
+                                                onChange={event =>
                                                   subCategoryEditForm.setValue(
                                                     'isActive',
                                                     event.target.value ===
@@ -1629,9 +1814,6 @@ export function DashboardCategoriesManager({
                                           ) : (
                                             <>
                                               <div className="flex items-center gap-2 font-semibold text-primary">
-                                                {/* <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs">
-                                                {index + 1}
-                                              </span> */}
                                                 <span>{subCategory.name}</span>
                                               </div>
                                               <div className="font-medium">
@@ -1665,7 +1847,7 @@ export function DashboardCategoriesManager({
                                               onClick={() =>
                                                 editingSubCategoryImageInputRef.current?.click()
                                               }
-                                              onKeyDown={(event) => {
+                                              onKeyDown={event => {
                                                 if (
                                                   event.key === 'Enter' ||
                                                   event.key === ' '
@@ -1674,7 +1856,7 @@ export function DashboardCategoriesManager({
                                                   editingSubCategoryImageInputRef.current?.click();
                                                 }
                                               }}
-                                              onDragOver={(event) => {
+                                              onDragOver={event => {
                                                 event.preventDefault();
                                                 setEditingSubCategoryDragging(
                                                   true,
@@ -1685,7 +1867,7 @@ export function DashboardCategoriesManager({
                                                   false,
                                                 )
                                               }
-                                              onDrop={(event) => {
+                                              onDrop={event => {
                                                 event.preventDefault();
                                                 setEditingSubCategoryDragging(
                                                   false,
@@ -1731,7 +1913,7 @@ export function DashboardCategoriesManager({
                                               type="file"
                                               accept="image/*"
                                               className="sr-only"
-                                              onChange={(event) => {
+                                              onChange={event => {
                                                 handleEditingSubCategoryImageSelect(
                                                   event.target.files?.[0],
                                                 );
@@ -1816,9 +1998,10 @@ export function DashboardCategoriesManager({
           </Table>
         </CardContent>
       </Card>
+
       <DeleteConfirmationDialog
         open={Boolean(pendingDelete)}
-        onOpenChange={(open) => {
+        onOpenChange={open => {
           if (!open) closeDeleteDialog();
         }}
         onConfirm={confirmDelete}

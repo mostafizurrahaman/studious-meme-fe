@@ -52,6 +52,8 @@ type CategoryMutationPayload = {
   slug: string;
   image?: File | string;
   description?: string;
+  metaTitle?: string;
+  metaDescription?: string;
   accent?: string;
   isActive?: boolean;
 };
@@ -131,6 +133,9 @@ export const createCategory = async (
         image: payload.image,
         description: payload.description,
         accent: payload.accent,
+        metaTitle: payload.metaTitle,
+
+        metaDescription: payload.metaDescription,
         isActive: payload.isActive,
       }),
       token: accessToken ?? undefined,
@@ -159,6 +164,9 @@ export const updateCategory = async (
         slug: slugify(payload.slug ?? payload.name),
         image: payload.image,
         description: payload.description,
+        metaTitle: payload.metaTitle,
+
+        metaDescription: payload.metaDescription,
         accent: payload.accent,
         isActive: payload.isActive,
       }),
