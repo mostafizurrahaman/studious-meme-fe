@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { Toaster } from 'sonner';
 import UserProvider from '@/context/UserContext';
 import { MicrosoftClarity } from '@/components/MicrosoftClarity';
+import Head from './head';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -42,6 +43,8 @@ export default function RootLayout({
         inter.variable,
       )}
     >
+      <Head />
+
       {process.env.NODE_ENV === 'production' && <MicrosoftClarity />}
       <body className="storefront-layout min-h-full flex flex-col bg-background text-foreground">
         <GoogleAnalytics />

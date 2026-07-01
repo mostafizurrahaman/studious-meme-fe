@@ -169,6 +169,9 @@ export const siteMetadata: Metadata = {
     description: siteConfig.description,
     images: [absoluteUrl(siteConfig.ogImage)],
   },
+  verification: {
+    google: siteConfig.googleVerification,
+  },
 };
 
 export const homeMetadata = buildMetadata({
