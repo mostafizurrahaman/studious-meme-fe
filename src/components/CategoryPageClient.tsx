@@ -19,6 +19,7 @@ import {
   getCategoryAccentStyle,
 } from '@/lib/category-accent';
 import type { CategoryPageEntry, Product } from '@/lib/storefront-types';
+import { cn } from '@/lib/utils';
 
 type Props = {
   category: CategoryPageEntry;
@@ -53,8 +54,9 @@ export function CategoryPageClient({
   const activeSubCategory = searchParams.get('subCategorySlug') ?? '';
   const totalPages = Math.max(meta.totalPages, 1);
   const page = Math.min(meta.page, totalPages);
-  const activeCount =
-    [activeStock, activePrice, activeSubCategory].filter(Boolean).length;
+  const activeCount = [activeStock, activePrice, activeSubCategory].filter(
+    Boolean,
+  ).length;
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -83,17 +85,22 @@ export function CategoryPageClient({
 
   return (
     <>
-      <section className="rounded-2xl border border-border bg-background p-3 text-foreground shadow-sm sm:hidden">
-        <h1 className="text-2xl font-black tracking-tight text-foreground">
-          {title}
-        </h1>
-      </section>
-
       <section
-        className={`hidden rounded-3xl p-6 text-white shadow-sm sm:block ${getCategoryAccentClassName(category.accent)}`}
+        className={cn(
+          'rounded-2xl p-3 shadow-sm',
+          // Mobile styles
+          'border border-border bg-background text-foreground',
+          // Desktop styles
+          'sm:rounded-3xl sm:border-0 sm:p-6 sm:text-white',
+          getCategoryAccentClassName(category.accent),
+        )}
         style={getCategoryAccentStyle(category.accent)}
       >
-        <h1 className="text-4xl font-black">{title}</h1>
+        <h1 className="text-2xl font-black tracking-tight sm:text-4xl">
+          {title}
+        </h1>
+
+        <h2 className="text-base my-5">{category.description}</h2>
       </section>
 
       <Card className="mt-6 p-4 shadow-sm">
@@ -157,18 +164,16 @@ export function CategoryPageClient({
                         >
                           All sub categories
                         </Button>
-                        {subCategories.map((subCategory) => {
-                          const selected = activeSubCategory === subCategory.slug;
+                        {subCategories.map(subCategory => {
+                          const selected =
+                            activeSubCategory === subCategory.slug;
 
                           return (
                             <Button
                               key={subCategory.slug}
                               type="button"
                               onClick={() =>
-                                updateParam(
-                                  'subCategorySlug',
-                                  subCategory.slug,
-                                )
+                                updateParam('subCategorySlug', subCategory.slug)
                               }
                               className={`h-auto rounded-full px-3 py-2 text-xs font-semibold transition ${
                                 selected

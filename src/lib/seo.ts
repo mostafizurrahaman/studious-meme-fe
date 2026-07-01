@@ -78,7 +78,7 @@ export const siteAboutSections: AboutSection[] = [
 ];
 
 export const siteFullDescription = siteAboutSections
-  .map((s) => `${s.heading}\n${s.content}`)
+  .map(s => `${s.heading}\n${s.content}`)
   .join('\n\n');
 
 export function absoluteUrl(path: string) {
@@ -135,7 +135,7 @@ export function buildMetadata({
       card: 'summary_large_image',
       title,
       description,
-      images: images?.map((item) => item.url),
+      images: images?.map(item => item.url),
     },
   };
 }
@@ -288,16 +288,20 @@ export const myAccountMetadata = buildMetadata({
 
 export function buildCategoryMetadata(category: {
   name?: string;
+  metaTitle?: string;
+  metaDescription?: string;
   title?: string;
   slug: string;
   description: string;
   image?: string;
 }) {
-  const title = category.name ?? category.title ?? 'Category';
+  const title =
+    category.metaTitle ?? category.name ?? category.title ?? 'Category';
+  const metaDescription = category.metaDescription ?? category.description;
 
   return buildMetadata({
     title,
-    description: category.description,
+    description: metaDescription,
     path: `/category/${category.slug}`,
     image: category.image,
   });
@@ -409,7 +413,7 @@ export function buildFaqSchema(
     name,
     description,
     url: absoluteUrl(path),
-    mainEntity: questions.map((item) => ({
+    mainEntity: questions.map(item => ({
       '@type': 'Question',
       name: item.question,
       acceptedAnswer: {
@@ -491,7 +495,7 @@ const organizationSchema = {
 const aboutPageSchema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
-  mainEntity: siteAboutSections.map((section) => ({
+  mainEntity: siteAboutSections.map(section => ({
     '@type': 'Question',
     name: section.heading,
     acceptedAnswer: {
@@ -520,17 +524,17 @@ export function buildHomeSchemas(input?: {
   const brandItems = input?.brands ?? [];
 
   const items = [
-    ...categories.slice(0, 8).map((category) => ({
+    ...categories.slice(0, 8).map(category => ({
       name: category.name,
       url: category.href,
       image: category.image ? absoluteUrl(category.image) : undefined,
     })),
-    ...products.slice(0, 10).map((product) => ({
+    ...products.slice(0, 10).map(product => ({
       name: product.title,
       url: `/product/${product.slug}`,
       image: getProductPrimaryImage(product),
     })),
-    ...brandItems.slice(0, 8).map((brand) => ({
+    ...brandItems.slice(0, 8).map(brand => ({
       name: brand.name,
       url: brand.href,
       image: brand.image,
@@ -589,7 +593,7 @@ export function buildShopSchemas(products: Product[], categories: Category[]) {
       'Shop Catalog',
       'Browse products from the hardware catalog.',
       '/shop',
-      products.slice(0, 50).map((product) => ({
+      products.slice(0, 50).map(product => ({
         name: product.title,
         url: `/product/${product.slug}`,
         image: getProductPrimaryImage(product),
@@ -599,7 +603,7 @@ export function buildShopSchemas(products: Product[], categories: Category[]) {
       'Shop Categories',
       'Browse the storefront category structure.',
       '/main-categories',
-      categories.slice(0, 20).map((category) => ({
+      categories.slice(0, 20).map(category => ({
         name: category.name,
         url: category.href,
         image: category.image ? absoluteUrl(category.image) : undefined,
@@ -656,7 +660,7 @@ export function buildCategorySchemas(
       title,
       category.description,
       `/category/${category.slug}`,
-      products.map((product) => ({
+      products.map(product => ({
         name: product.title,
         url: `/product/${product.slug}`,
         image: getProductPrimaryImage(product),
@@ -677,7 +681,7 @@ export function buildMainCategoriesSchemas(categories: Category[]) {
       'All Categories',
       'Explore the storefront category structure.',
       '/main-categories',
-      items.map((category) => ({
+      items.map(category => ({
         name: category.name,
         url: category.href,
         image: category.image ? absoluteUrl(category.image) : undefined,
@@ -698,7 +702,7 @@ export function buildShopByBrandsSchemas(brandItems: Brand[]) {
       'Shop By Brands',
       'Browse the trusted brands used across the storefront.',
       '/shop-by-brands',
-      items.map((brand) => ({
+      items.map(brand => ({
         name: brand.name,
         url: brand.href,
         image: brand.image,
@@ -719,7 +723,7 @@ export function buildPromotionsSchemas(products: Product[]) {
       'Promotions',
       'View the current promotional offers and campaign products.',
       '/promotions',
-      items.slice(0, 50).map((product) => ({
+      items.slice(0, 50).map(product => ({
         name: product.title,
         url: `/product/${product.slug}`,
         image: getProductPrimaryImage(product),

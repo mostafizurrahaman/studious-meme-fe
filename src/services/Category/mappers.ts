@@ -20,6 +20,8 @@ export type BackendCategory = {
   slug: string;
   image?: string;
   description?: string;
+  metaTitle?: string;
+  metaDescription?: string;
   accent?: string;
   isActive?: boolean;
   subCategories?: BackendSubCategory[];
@@ -61,12 +63,11 @@ export function mapBackendCategoryToStorefrontCategory(
     href: `/category/${slug}`,
     image: category.image,
     description:
-      category.description ??
-      `${name} catalog and related hardware listings.`,
+      category.description ?? `${name} catalog and related hardware listings.`,
     accent: getAccent(slug, category.accent),
     subCategories: category.subCategories
-      ?.filter((subCategory) => subCategory.isActive !== false)
-      .map((subCategory) => ({
+      ?.filter(subCategory => subCategory.isActive !== false)
+      .map(subCategory => ({
         name: subCategory.name,
         slug: subCategory.slug,
         description: subCategory.description,

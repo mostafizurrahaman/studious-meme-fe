@@ -38,9 +38,9 @@ export async function generateStaticParams() {
 
   return Array.isArray(categoriesResult?.data)
     ? categoriesResult.data
-        .map((item) => (item as BackendCategory).slug)
+        .map(item => (item as BackendCategory).slug)
         .filter((slug): slug is string => Boolean(slug))
-        .map((slug) => ({ slug }))
+        .map(slug => ({ slug }))
     : [];
 }
 
@@ -86,9 +86,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const subCategorySlug = query.subCategorySlug?.trim() ?? '';
   const selectedSubCategory =
     'subCategories' in category
-      ? (category.subCategories?.find(
-          (item) => item.slug === subCategorySlug,
-        ) ?? null)
+      ? (category.subCategories?.find(item => item.slug === subCategorySlug) ??
+        null)
       : null;
   const productsResult = await (
     subCategorySlug

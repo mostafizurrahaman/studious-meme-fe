@@ -36,6 +36,8 @@ export type StorefrontCategory = {
   href: `/category/${string}`;
   image?: string;
   description: string;
+  metaTitle?: string;
+  metaDescription?: string;
   accent: string;
   subCategories?: Array<{
     name: string;
@@ -62,6 +64,8 @@ export type CategoryShowcaseEntry = {
   slug: string;
   href: `/category/${string}`;
   description: string;
+  metaTitle: string;
+  metaDescription: string;
   accent: string;
 };
 
