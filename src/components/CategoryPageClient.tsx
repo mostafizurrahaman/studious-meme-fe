@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/sheet';
 import {
   getCategoryAccentClassName,
+  getCategoryAccentClassNameForDesktop,
   getCategoryAccentStyle,
 } from '@/lib/category-accent';
 import type { CategoryPageEntry, Product } from '@/lib/storefront-types';
@@ -92,16 +93,27 @@ export function CategoryPageClient({
           'border border-border bg-background text-foreground',
           // Desktop styles
           'sm:rounded-3xl sm:border-0 sm:p-6 sm:text-white',
-          getCategoryAccentClassName(category.accent),
+          getCategoryAccentClassNameForDesktop(category.accent),
         )}
         style={getCategoryAccentStyle(category.accent)}
       >
         <h1 className="text-2xl font-black tracking-tight sm:text-4xl">
           {title}
         </h1>
-
-        <h2 className="text-base my-5">{category.description}</h2>
       </section>
+
+      {/* <section className="rounded-2xl border border-border bg-background p-3 text-foreground shadow-sm sm:hidden">
+        <h1 className="text-2xl font-black tracking-tight text-foreground">
+          {title}
+        </h1>
+      </section>
+
+      <section
+        className={`hidden rounded-3xl p-6 text-white shadow-sm sm:block ${getCategoryAccentClassName(category.accent)}`}
+        style={getCategoryAccentStyle(category.accent)}
+      >
+        <h1 className="text-4xl font-black">{title}</h1>
+      </section> */}
 
       <Card className="mt-6 p-4 shadow-sm">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -290,6 +302,11 @@ export function CategoryPageClient({
           </Button>
         </div>
       </Card>
+
+      <div className="mt-5">
+        <h2 className="font-semibold text-lg">Description </h2>
+        <h2 className="text-base my-2">{category.description}</h2>
+      </div>
     </>
   );
 }

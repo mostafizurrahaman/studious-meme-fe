@@ -23,6 +23,16 @@ export function getCategoryAccentClassName(accent?: string) {
   return `bg-linear-to-br ${value}`;
 }
 
+export function getCategoryAccentClassNameForDesktop(accent?: string) {
+  const value = accent?.trim();
+
+  if (!value || isCssColor(value) || value.startsWith('linear-gradient')) {
+    return fallbackGradient;
+  }
+
+  return `sm:bg-linear-to-br ${value}`;
+}
+
 export function getCategoryAccentStyle(
   accent?: string,
 ): CSSProperties | undefined {
