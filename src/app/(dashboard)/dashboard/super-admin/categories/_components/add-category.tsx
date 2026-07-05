@@ -13,6 +13,7 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -35,6 +36,7 @@ import { slugify } from '@/lib/slug';
 import { createCategory } from '@/services/Category';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { CrossIcon, X } from 'lucide-react';
 
 interface IAddCategoryModalProps {
   categoryLength: number;
@@ -148,7 +150,7 @@ export function AddCategoryModal({
 
   return (
     <Dialog modal open={isOpen} onOpenChange={open => !open && onCancel?.()}>
-      <DialogContent className="max-h-[90vh] overflow-hidden p-0 sm:max-w-7xl">
+      <DialogContent className="max-h-[90vh] overflow-hidden p-0 sm:max-w-7xl [&>button]:hidden">
         {/* handleSubmit-এ সরাসরি handleFormError ব্যবহার করা হয়েছে */}
         <form
           onSubmit={form.handleSubmit(handleSubmit, handleFormError)}
@@ -163,6 +165,17 @@ export function AddCategoryModal({
               configure, or optimize hierarchies here.
             </DialogDescription>
           </DialogHeader>
+          <DialogClose asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute right-4 top-4 z-10 h-8 w-8 rounded-full bg-destructive text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-label="Close dialog"
+            >
+              <X className="size-5 text-white store-white" />
+            </Button>
+          </DialogClose>
 
           <div className="flex-1 overflow-y-auto px-6">
             <FieldGroup className="pb-6">

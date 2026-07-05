@@ -918,8 +918,11 @@ export function DashboardCategoriesManager({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
+      <div className="flex items-center justify-end">
+        <Button
+          className="cursor-pointer"
+          onClick={() => setIsCreateModalOpen(true)}
+        >
           Create Category
         </Button>
       </div>
@@ -933,7 +936,7 @@ export function DashboardCategoriesManager({
             console.log('Success');
           }}
           onCancel={() => {
-            console.log('Cancelled');
+            setIsCreateModalOpen(false);
           }}
         />
       )}
