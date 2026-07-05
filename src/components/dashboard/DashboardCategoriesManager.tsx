@@ -51,6 +51,7 @@ import { formatDashboardDate } from '@/lib/formatDate';
 import Image from 'next/image';
 import { makeZodResolver } from '@/lib/form-validation';
 import { DeleteConfirmationDialog } from '@/components/dashboard/DeleteConfirmationDialog';
+import { AddCategoryModal } from '@/app/(dashboard)/dashboard/super-admin/categories/_components/add-category';
 
 type CategoryRow = {
   name: string;
@@ -175,9 +176,13 @@ function ErrorText({ message }: { message?: string }) {
 export function DashboardCategoriesManager({
   categories,
 }: DashboardCategoriesManagerProps) {
+  // ** New lines:
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [newSlugAutoSync, setNewSlugAutoSync] = useState(true);
+
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [editingSlugAutoSync, setEditingSlugAutoSync] = useState(true);
   const [expandedSlug, setExpandedSlug] = useState<string | null>(null);
@@ -278,6 +283,7 @@ export function DashboardCategoriesManager({
     name: 'name',
     defaultValue: '',
   });
+
   const categoryCreateAccent =
     useWatch({ control: categoryCreateForm.control, name: 'accent' }) ?? '';
 
@@ -561,8 +567,6 @@ export function DashboardCategoriesManager({
           metaTitle: values.metaTitle?.trim() || undefined,
           metaDescription: values.metaDescription?.trim() || undefined,
         });
-
-        
 
         if (!result?.success) {
           refreshWithToast(
@@ -914,234 +918,25 @@ export function DashboardCategoriesManager({
 
   return (
     <div className="space-y-6">
-      {/* Modernized Category Creation Card */}
-      <Card className="border border-border/60 shadow-md overflow-hidden bg-card/60 backdrop-blur-md">
-        <CardHeader className="border-b border-border/40 bg-muted/20 px-6 py-4">
-          <div>
-            <CardTitle className="text-xl font-bold tracking-tight text-foreground">
-              Categories
-            </CardTitle>
-            <CardDescription className="text-sm text-muted-foreground mt-1">
-              {categories.length} categories configured in system. Define,
-              configure, or optimize hierarchies here.
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {/* Input fields panel */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* General Settings Section */}
-              <div className="space-y-4">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border/30 pb-2">
-                  General Configurations
-                </h3>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="grid gap-1.5">
-                    <label className="text-xs font-medium text-foreground">
-                      Category Name
-                    </label>
-                    <DashboardInput
-                      placeholder="Enter category name"
-                      {...categoryCreateForm.register('name', {
-                        onChange: event =>
-                          handleNewCategoryNameChange(event.target.value),
-                      })}
-                    />
-                    <ErrorText
-                      message={
-                        categoryCreateForm.formState.errors.name?.message
-                      }
-                    />
-                  </div>
+      <div>
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          Create Category
+        </Button>
+      </div>
 
-                  <div className="grid gap-1.5">
-                    <label className="text-xs font-medium text-foreground">
-                      Slug URL
-                    </label>
-                    <DashboardInput
-                      placeholder="e.g. general-news"
-                      {...categoryCreateForm.register('slug', {
-                        onChange: event =>
-                          handleNewCategorySlugChange(event.target.value),
-                      })}
-                    />
-                    <ErrorText
-                      message={
-                        categoryCreateForm.formState.errors.slug?.message
-                      }
-                    />
-                  </div>
-
-                  <div className="grid gap-1.5">
-                    <label className="text-xs font-medium text-foreground">
-                      Accent Color
-                    </label>
-                    <AccentColorField
-                      value={categoryCreateAccent}
-                      onChange={value =>
-                        categoryCreateForm.setValue('accent', value, {
-                          shouldValidate: true,
-                        })
-                      }
-                      placeholder="Category accent hex"
-                    />
-                  </div>
-
-                  <div className="grid gap-1.5">
-                    <label className="text-xs font-medium text-foreground">
-                      Description
-                    </label>
-                    <DashboardInput
-                      {...categoryCreateForm.register('description')}
-                      placeholder="Description of the category"
-                    />
-                    <ErrorText
-                      message={
-                        categoryCreateForm.formState.errors.description?.message
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* SEO Configurations Section */}
-              <div className="space-y-4 pt-2">
-                <div className="flex items-center gap-2 border-b border-border/30 pb-2">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    SEO Metadata
-                  </h3>
-                  <Badge
-                    variant="outline"
-                    className="text-[10px] px-1.5 py-0 font-normal"
-                  >
-                    Optional
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="grid gap-1.5">
-                    <label className="text-xs font-medium text-foreground">
-                      Meta Title
-                    </label>
-                    <DashboardInput
-                      placeholder="SEO Title (recommended < 60 characters)"
-                      {...categoryCreateForm.register('metaTitle')}
-                    />
-                    <ErrorText
-                      message={
-                        categoryCreateForm.formState.errors.metaTitle?.message
-                      }
-                    />
-                  </div>
-
-                  <div className="grid gap-1.5">
-                    <label className="text-xs font-medium text-foreground">
-                      Meta Description
-                    </label>
-                    <DashboardInput
-                      placeholder="SEO Description (recommended < 160 characters)"
-                      {...categoryCreateForm.register('metaDescription')}
-                    />
-                    <ErrorText
-                      message={
-                        categoryCreateForm.formState.errors.metaDescription
-                          ?.message
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Drag and Drop Cover Image & Actions Panel */}
-            <div className="flex flex-col justify-between space-y-6 lg:border-l lg:border-border/40 lg:pl-6">
-              <div className="space-y-4">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border/30 pb-2 lg:border-0 lg:pb-0">
-                  Media Attachment
-                </h3>
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => categoryImageInputRef.current?.click()}
-                  onKeyDown={event => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      categoryImageInputRef.current?.click();
-                    }
-                  }}
-                  onDragOver={event => {
-                    event.preventDefault();
-                    setCategoryDragging(true);
-                  }}
-                  onDragLeave={() => setCategoryDragging(false)}
-                  onDrop={event => {
-                    event.preventDefault();
-                    setCategoryDragging(false);
-                    handleCategoryImageSelect(event.dataTransfer.files?.[0]);
-                  }}
-                  className={`group relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 transition-all duration-200 cursor-pointer ${
-                    categoryDragging
-                      ? 'border-primary bg-primary/5 scale-[0.99]'
-                      : 'border-border/70 bg-background/50 hover:border-primary/50 hover:bg-muted/10'
-                  }`}
-                >
-                  <div className="flex flex-col items-center text-center">
-                    <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-3 shadow-sm transition group-hover:scale-105">
-                      <UploadCloud className="size-5" />
-                    </div>
-                    <div className="text-sm font-semibold text-foreground">
-                      Cover Artwork
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">
-                      Drag and drop image or click viewport to browse files.
-                    </p>
-                  </div>
-
-                  <div className="mt-4 w-full overflow-hidden rounded-xl border bg-muted/40">
-                    {categoryImagePreview ? (
-                      <div className="relative h-28 w-full">
-                        <Image
-                          height={500}
-                          width={500}
-                          src={categoryImagePreview}
-                          alt="Category preview"
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex h-28 items-center justify-center gap-2 text-xs text-muted-foreground bg-muted/10">
-                        <ImagePlus className="size-4" />
-                        Preview Container
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <input
-                ref={categoryImageInputRef}
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                onChange={event => {
-                  handleCategoryImageSelect(event.target.files?.[0]);
-                  event.currentTarget.value = '';
-                }}
-              />
-
-              <Button
-                type="button"
-                disabled={isPending}
-                onClick={handleCreate}
-                className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-colors py-5 text-sm font-medium rounded-xl"
-              >
-                <Plus className="size-4" />
-                Add Category
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {isCreateModalOpen && (
+        <AddCategoryModal
+          categoryLength={categories?.length}
+          isOpen={isCreateModalOpen}
+          onSuccess={() => {
+            setIsCreateModalOpen(prev => !prev);
+            console.log('Success');
+          }}
+          onCancel={() => {
+            console.log('Cancelled');
+          }}
+        />
+      )}
 
       {/* Main Categories Management Table list */}
       <Card className="shadow-sm">
