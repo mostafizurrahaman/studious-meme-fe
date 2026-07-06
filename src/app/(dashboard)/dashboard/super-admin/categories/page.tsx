@@ -18,6 +18,7 @@ export default async function SuperAdminCategoriesPage() {
   const categoriesResult = await getAllCategories().catch(() => null);
   const categories = Array.isArray(categoriesResult?.data)
     ? (categoriesResult.data as Array<{
+        _id: string;
         name: string;
         slug?: string;
         totalNews?: number;

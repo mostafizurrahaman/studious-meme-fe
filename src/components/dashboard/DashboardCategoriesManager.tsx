@@ -52,8 +52,10 @@ import Image from 'next/image';
 import { makeZodResolver } from '@/lib/form-validation';
 import { DeleteConfirmationDialog } from '@/components/dashboard/DeleteConfirmationDialog';
 import { AddCategoryModal } from '@/app/(dashboard)/dashboard/super-admin/categories/_components/add-category';
+import { EditCategoryModal } from '@/app/(dashboard)/dashboard/super-admin/categories/_components/edit-category';
 
 type CategoryRow = {
+  _id: string;
   name: string;
   slug?: string;
   image?: string;
@@ -173,11 +175,26 @@ function ErrorText({ message }: { message?: string }) {
   return <p className="text-xs text-destructive">{message}</p>;
 }
 
+interface ICategory {
+  _id: string;
+  name: string;
+  slug: string;
+  accent?: string;
+  description?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  image?: string;
+}
+
 export function DashboardCategoriesManager({
   categories,
 }: DashboardCategoriesManagerProps) {
   // ** New lines:
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryRow | null>(
+    null,
+  );
 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -1264,7 +1281,11 @@ export function DashboardCategoriesManager({
                               size="sm"
                               variant="outline"
                               disabled={isPending}
-                              onClick={() => startEditingCategory(category)}
+                              onClick={() => {
+                                startEditingCategory(category);
+                                setIsEditModalOpen(true);
+                                setSelectedCategory(category);
+                              }}
                             >
                               <Pencil className="size-4" />
                             </Button>
@@ -1820,6 +1841,29 @@ export function DashboardCategoriesManager({
             : 'Delete category'
         }
       />
+
+      {isEditModalOpen && (
+        <EditCategoryModal
+          category={{
+            _id: selectedCategory?._id as string,
+            name: selectedCategory?.name as string,
+            slug: selectedCategory?.slug,
+            description: selectedCategory?.description,
+            accent: selectedCategory?.accent,
+            image: selectedCategory?.image,
+            isActive: selectedCategory?.isActive,
+            metaDescription: selectedCategory?.metaDescription,
+            metaTitle: selectedCategory?.metaTitle,
+          }}
+          isOpen={isEditModalOpen}
+          onSuccess={() => {
+            setIsEditModalOpen(prev => !prev);
+          }}
+          onCancel={() => {
+            setIsEditModalOpen(prev => !prev);
+          }}
+        />
+      )}
     </div>
   );
 }
