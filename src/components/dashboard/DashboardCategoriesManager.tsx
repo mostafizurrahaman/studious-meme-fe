@@ -981,8 +981,6 @@ export function DashboardCategoriesManager({
             </TableHeader>
             <TableBody>
               {visibleCategories.map((category, categoryIndex) => {
-                const isEditing = editingSlug === category.slug;
-
                 return (
                   <Fragment
                     key={category.slug ?? getCategoryDisplayName(category)}
@@ -992,90 +990,19 @@ export function DashboardCategoriesManager({
                         {categoryIndex + 1}
                       </TableCell>
                       <TableCell>
-                        {isEditing ? (
-                          <>
-                            <div
-                              role="button"
-                              tabIndex={0}
-                              onClick={() =>
-                                editingCategoryImageInputRef.current?.click()
-                              }
-                              onKeyDown={event => {
-                                if (
-                                  event.key === 'Enter' ||
-                                  event.key === ' '
-                                ) {
-                                  event.preventDefault();
-                                  editingCategoryImageInputRef.current?.click();
-                                }
-                              }}
-                              onDragOver={event => {
-                                event.preventDefault();
-                                setEditingCategoryDragging(true);
-                              }}
-                              onDragLeave={() =>
-                                setEditingCategoryDragging(false)
-                              }
-                              onDrop={event => {
-                                event.preventDefault();
-                                setEditingCategoryDragging(false);
-                                handleEditingCategoryImageSelect(
-                                  event.dataTransfer.files?.[0],
-                                );
-                              }}
-                              className={`rounded-xl border-2 border-dashed p-2 transition ${
-                                editingCategoryDragging
-                                  ? 'border-primary bg-primary/5'
-                                  : 'border-border/70 bg-background/80 hover:border-primary/40'
-                              }`}
-                            >
-                              <div className="flex size-12 items-center justify-center overflow-hidden rounded-lg border bg-muted">
-                                {editingCategoryImagePreview ||
-                                category.image ? (
-                                  <Image
-                                    height={500}
-                                    width={500}
-                                    src={
-                                      editingCategoryImagePreview ||
-                                      category.image ||
-                                      ''
-                                    }
-                                    alt={getCategoryDisplayName(category)}
-                                    className="h-full w-full object-cover"
-                                  />
-                                ) : (
-                                  <ImagePlus className="size-4 text-muted-foreground" />
-                                )}
-                              </div>
-                            </div>
-                            <input
-                              ref={editingCategoryImageInputRef}
-                              type="file"
-                              accept="image/*"
-                              className="sr-only"
-                              onChange={event => {
-                                handleEditingCategoryImageSelect(
-                                  event.target.files?.[0],
-                                );
-                                event.currentTarget.value = '';
-                              }}
+                        <div className="flex size-12 items-center justify-center overflow-hidden rounded-xl border bg-muted">
+                          {category.image ? (
+                            <Image
+                              height={500}
+                              width={500}
+                              src={category.image}
+                              alt={getCategoryDisplayName(category)}
+                              className="h-full w-full object-cover"
                             />
-                          </>
-                        ) : (
-                          <div className="flex size-12 items-center justify-center overflow-hidden rounded-xl border bg-muted">
-                            {category.image ? (
-                              <Image
-                                height={500}
-                                width={500}
-                                src={category.image}
-                                alt={getCategoryDisplayName(category)}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <ImagePlus className="size-4 text-muted-foreground" />
-                            )}
-                          </div>
-                        )}
+                          ) : (
+                            <ImagePlus className="size-4 text-muted-foreground" />
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
@@ -1096,143 +1023,23 @@ export function DashboardCategoriesManager({
                               className={`size-4 transition ${expandedSlug === category.slug ? 'rotate-180' : ''}`}
                             />
                           </Button>
-                          {isEditing ? (
-                            <div className="grid min-w-0 gap-1.5 font-normal">
-                              <label className="text-[11px] font-medium text-muted-foreground">
-                                Category name
-                              </label>
-                              <DashboardInput
-                                placeholder="Category name"
-                                className="max-w-full"
-                                {...categoryEditForm.register('name', {
-                                  onChange: event =>
-                                    handleEditingCategoryNameChange(
-                                      event.target.value,
-                                    ),
-                                })}
-                              />
-                              <ErrorText
-                                message={
-                                  categoryEditForm.formState.errors.name
-                                    ?.message
-                                }
-                              />
-                            </div>
-                          ) : (
-                            getCategoryDisplayName(category)
-                          )}
+                          {getCategoryDisplayName(category)}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        {isEditing ? (
-                          <div className="grid min-w-0 gap-1.5">
-                            <label className="text-[11px] font-medium text-muted-foreground">
-                              Category slug
-                            </label>
-                            <DashboardInput
-                              placeholder="Category slug"
-                              className="max-w-full"
-                              {...categoryEditForm.register('slug', {
-                                onChange: event =>
-                                  handleEditingCategorySlugChange(
-                                    event.target.value,
-                                  ),
-                              })}
-                            />
-                            <ErrorText
-                              message={
-                                categoryEditForm.formState.errors.slug?.message
-                              }
-                            />
-                          </div>
-                        ) : (
-                          (category.slug ?? '-')
-                        )}
-                      </TableCell>
+                      <TableCell>{category.slug ?? '-'}</TableCell>
                       <TableCell className="min-w-0 max-w-44 text-sm text-muted-foreground">
-                        {isEditing ? (
-                          <div className="grid gap-1.5">
-                            <label className="text-[11px] font-medium text-muted-foreground">
-                              Accent Hex
-                            </label>
-                            <AccentColorField
-                              value={categoryEditAccent}
-                              onChange={value =>
-                                categoryEditForm.setValue('accent', value, {
-                                  shouldValidate: true,
-                                })
-                              }
-                              placeholder="Category accent hex"
-                            />
-                          </div>
-                        ) : (
-                          sliceText(category.accent)
-                        )}
+                        {sliceText(category.accent)}
                       </TableCell>
                       <TableCell className="min-w-0 max-w-60 text-sm text-muted-foreground">
-                        {isEditing ? (
-                          <div className="grid gap-1.5">
-                            <label className="text-[11px] font-medium text-muted-foreground">
-                              Description
-                            </label>
-                            <DashboardInput
-                              placeholder="Category description"
-                              {...categoryEditForm.register('description')}
-                            />
-                            <ErrorText
-                              message={
-                                categoryEditForm.formState.errors.description
-                                  ?.message
-                              }
-                            />
-                          </div>
-                        ) : (
-                          sliceText(category.description)
-                        )}
+                        {sliceText(category.description)}
                       </TableCell>
                       {/* Meta Title Column */}
                       <TableCell className="min-w-0 max-w-44 text-sm text-muted-foreground">
-                        {isEditing ? (
-                          <div className="grid gap-1.5">
-                            <label className="text-[11px] font-medium text-muted-foreground">
-                              Meta Title
-                            </label>
-                            <DashboardInput
-                              placeholder="SEO Title"
-                              {...categoryEditForm.register('metaTitle')}
-                            />
-                            <ErrorText
-                              message={
-                                categoryEditForm.formState.errors.metaTitle
-                                  ?.message
-                              }
-                            />
-                          </div>
-                        ) : (
-                          sliceText(category.metaTitle)
-                        )}
+                        {sliceText(category.metaTitle)}
                       </TableCell>
                       {/* Meta Description Column */}
                       <TableCell className="min-w-0 max-w-60 text-sm text-muted-foreground">
-                        {isEditing ? (
-                          <div className="grid gap-1.5">
-                            <label className="text-[11px] font-medium text-muted-foreground">
-                              Meta Description
-                            </label>
-                            <DashboardInput
-                              placeholder="SEO Description"
-                              {...categoryEditForm.register('metaDescription')}
-                            />
-                            <ErrorText
-                              message={
-                                categoryEditForm.formState.errors
-                                  .metaDescription?.message
-                              }
-                            />
-                          </div>
-                        ) : (
-                          sliceText(category.metaDescription)
-                        )}
+                        {sliceText(category.metaDescription)}
                       </TableCell>
                       <TableCell>
                         {category.subCategories?.length ??
@@ -1266,40 +1073,20 @@ export function DashboardCategoriesManager({
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          {isEditing ? (
-                            <Button
-                              type="button"
-                              size="sm"
-                              disabled={isPending}
-                              onClick={() => handleUpdate(category.slug)}
-                            >
-                              Save
-                            </Button>
-                          ) : (
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              disabled={isPending}
-                              onClick={() => {
-                                startEditingCategory(category);
-                                setIsEditModalOpen(true);
-                                setSelectedCategory(category);
-                              }}
-                            >
-                              <Pencil className="size-4" />
-                            </Button>
-                          )}
-                          {isEditing ? (
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              onClick={stopEditingCategory}
-                            >
-                              Cancel
-                            </Button>
-                          ) : null}
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={isPending}
+                            onClick={() => {
+                              startEditingCategory(category);
+                              setIsEditModalOpen(true);
+                              setSelectedCategory(category);
+                            }}
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+
                           <Button
                             type="button"
                             size="sm"
