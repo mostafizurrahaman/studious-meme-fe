@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 type AccentColorFieldProps = {
   value: string;
@@ -7,6 +8,7 @@ type AccentColorFieldProps = {
   placeholder?: string;
   id?: string;
   label?: string;
+  className?: string;
 };
 
 export function AccentColorField({
@@ -15,11 +17,17 @@ export function AccentColorField({
   placeholder = 'Enter accent color',
   id = 'accent-color',
   label = 'Pick accent color',
+  className = '',
 }: AccentColorFieldProps) {
   const colorValue = /^#([0-9a-fA-F]{6})$/.test(value) ? value : '#f97316';
 
   return (
-    <div className="flex h-fit w-full max-w-sm min-w-0 items-center gap-2 rounded-md border border-input bg-background px-3 py-1 shadow-sm">
+    <div
+      className={cn(
+        'flex h-fit w-full max-w-sm min-w-0 items-center gap-2 rounded-md border border-input bg-background px-3 py-1 shadow-sm',
+        className,
+      )}
+    >
       <label
         htmlFor={id}
         className="relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md border border-input bg-muted"

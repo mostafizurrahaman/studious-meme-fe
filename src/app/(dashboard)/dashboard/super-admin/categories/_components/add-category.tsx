@@ -37,6 +37,7 @@ import { createCategory } from '@/services/Category';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { CrossIcon, X } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 
 interface IAddCategoryModalProps {
   categoryLength: number;
@@ -226,7 +227,11 @@ export function AddCategoryModal({
                       <FieldLabel htmlFor="accent">
                         Pick Accent Color
                       </FieldLabel>
-                      <AccentColorField {...field} id="accent" />
+                      <AccentColorField
+                        {...field}
+                        id="accent"
+                        className="w-full max-w-full"
+                      />
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />
                       )}
@@ -279,11 +284,15 @@ export function AddCategoryModal({
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <DashboardRichTextEditor
-                          label="Meta Description"
+                        <FieldLabel htmlFor="metaDescription">
+                          Meta Description
+                        </FieldLabel>
+                        <Textarea
                           {...field}
-                          value={field.value || ''}
-                          minHeightClassName="h-32"
+                          id="metaDescription"
+                          aria-invalid={fieldState.invalid}
+                          placeholder="Enter meta description"
+                          rows={12}
                         />
                         {fieldState.invalid && (
                           <FieldError errors={[fieldState.error]} />

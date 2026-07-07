@@ -33,6 +33,7 @@ import { categorySchema, type TEditCategoryType } from '@/schemas/category';
 import { handleFormError } from '@/lib/handle-zod-error';
 import { updateCategory } from '@/services/Category';
 import { slugify } from '@/lib/slug';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ICategory {
   _id: string;
@@ -284,7 +285,11 @@ export function EditCategoryModal({
                       <FieldLabel htmlFor="edit-accent">
                         Accent Color
                       </FieldLabel>
-                      <AccentColorField {...field} id="edit-accent" />
+                      <AccentColorField
+                        {...field}
+                        id="edit-accent"
+                        className="w-full max-w-full"
+                      />
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />
                       )}
@@ -338,11 +343,15 @@ export function EditCategoryModal({
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <DashboardRichTextEditor
-                          label="Meta Description"
+                        <FieldLabel htmlFor="metaDescription">
+                          Meta Description
+                        </FieldLabel>
+                        <Textarea
                           {...field}
-                          value={field.value || ''}
-                          minHeightClassName="h-32"
+                          id="metaDescription"
+                          aria-invalid={fieldState.invalid}
+                          placeholder="Enter meta description"
+                          rows={12}
                         />
                         {fieldState.invalid && (
                           <FieldError errors={[fieldState.error]} />

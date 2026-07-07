@@ -14,20 +14,13 @@ import {
   ChevronDown,
   ImagePlus,
   Pencil,
-  Plus,
   Trash2,
   UploadCloud,
 } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { DashboardInput } from '@/components/dashboard/DashboardInput';
 import {
   Table,
@@ -39,11 +32,9 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import {
-  createCategory,
   createCategorySubCategory,
   deleteCategory,
   deleteCategorySubCategory,
-  updateCategory,
   updateCategorySubCategory,
 } from '@/services/Category';
 import { slugify } from '@/lib/slug';
@@ -175,17 +166,6 @@ function ErrorText({ message }: { message?: string }) {
   return <p className="text-xs text-destructive">{message}</p>;
 }
 
-interface ICategory {
-  _id: string;
-  name: string;
-  slug: string;
-  accent?: string;
-  description?: string;
-  metaTitle?: string;
-  metaDescription?: string;
-  image?: string;
-}
-
 export function DashboardCategoriesManager({
   categories,
 }: DashboardCategoriesManagerProps) {
@@ -200,7 +180,6 @@ export function DashboardCategoriesManager({
   const [isPending, startTransition] = useTransition();
   const [newSlugAutoSync, setNewSlugAutoSync] = useState(true);
 
-  const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [editingSlugAutoSync, setEditingSlugAutoSync] = useState(true);
   const [expandedSlug, setExpandedSlug] = useState<string | null>(null);
   const [newSubCategory, setNewSubCategory] = useState<
@@ -220,14 +199,11 @@ export function DashboardCategoriesManager({
   >(null);
   const [editingSubCategorySlugAutoSync, setEditingSubCategorySlugAutoSync] =
     useState(true);
-  const [categoryImageFile, setCategoryImageFile] = useState<File | null>(null);
   const [categoryImagePreview, setCategoryImagePreview] = useState('');
-  const [editingCategoryImageFile, setEditingCategoryImageFile] =
-    useState<File | null>(null);
+
   const [editingCategoryImagePreview, setEditingCategoryImagePreview] =
     useState('');
-  const [categoryDragging, setCategoryDragging] = useState(false);
-  const [editingCategoryDragging, setEditingCategoryDragging] = useState(false);
+
   const [subCategoryImageFiles, setSubCategoryImageFiles] = useState<
     Record<string, File | null>
   >({});
@@ -253,8 +229,7 @@ export function DashboardCategoriesManager({
       }
     | null
   >(null);
-  const categoryImageInputRef = useRef<HTMLInputElement>(null);
-  const editingCategoryImageInputRef = useRef<HTMLInputElement>(null);
+
   const editingSubCategoryImageInputRef = useRef<HTMLInputElement>(null);
 
   const categoryCreateForm = useForm<{
@@ -301,9 +276,6 @@ export function DashboardCategoriesManager({
     defaultValue: '',
   });
 
-  const categoryCreateAccent =
-    useWatch({ control: categoryCreateForm.control, name: 'accent' }) ?? '';
-
   const categoryEditForm = useForm<CategoryEditValues>({
     resolver: makeZodResolver(categoryEditSchema),
     defaultValues: {
@@ -331,8 +303,6 @@ export function DashboardCategoriesManager({
 
   const categoryEditName =
     useWatch({ control: categoryEditForm.control, name: 'name' }) ?? '';
-  const categoryEditAccent =
-    useWatch({ control: categoryEditForm.control, name: 'accent' }) ?? '';
   const subCategoryEditName =
     useWatch({ control: subCategoryEditForm.control, name: 'name' }) ?? '';
   const subCategoryEditAccent =
@@ -392,41 +362,6 @@ export function DashboardCategoriesManager({
       });
     }
   }, [categoryCreateForm, categoryCreateName, newSlugAutoSync]);
-
-  function handleNewCategoryNameChange(value: string) {
-    categoryCreateForm.setValue('name', value, { shouldValidate: true });
-    if (newSlugAutoSync) {
-      categoryCreateForm.setValue('slug', slugify(value), {
-        shouldDirty: true,
-        shouldTouch: false,
-        shouldValidate: false,
-      });
-      if (!value.trim()) {
-        categoryCreateForm.clearErrors('slug');
-      }
-    }
-  }
-
-  function handleNewCategorySlugChange(value: string) {
-    setNewSlugAutoSync(false);
-    categoryCreateForm.setValue('slug', slugify(value), {
-      shouldValidate: true,
-    });
-  }
-
-  function handleEditingCategoryNameChange(value: string) {
-    if (editingSlugAutoSync) {
-      categoryEditForm.setValue('slug', slugify(value), {
-        shouldValidate: true,
-      });
-    }
-    categoryEditForm.setValue('name', value, { shouldValidate: true });
-  }
-
-  function handleEditingCategorySlugChange(value: string) {
-    setEditingSlugAutoSync(false);
-    categoryEditForm.setValue('slug', slugify(value), { shouldValidate: true });
-  }
 
   function handleNewSubCategoryNameChange(categorySlug: string, value: string) {
     setNewSubCategory(current => {
@@ -518,22 +453,6 @@ export function DashboardCategoriesManager({
     });
   }
 
-  function handleCategoryImageSelect(file?: File) {
-    if (!file) return;
-    if (categoryImagePreview.startsWith('blob:'))
-      URL.revokeObjectURL(categoryImagePreview);
-    setCategoryImageFile(file);
-    setCategoryImagePreview(URL.createObjectURL(file));
-  }
-
-  function handleEditingCategoryImageSelect(file?: File) {
-    if (!file) return;
-    if (editingCategoryImagePreview.startsWith('blob:'))
-      URL.revokeObjectURL(editingCategoryImagePreview);
-    setEditingCategoryImageFile(file);
-    setEditingCategoryImagePreview(URL.createObjectURL(file));
-  }
-
   function handleSubCategoryImageSelect(categorySlug: string, file?: File) {
     if (!file) return;
     const current = subCategoryImagePreviews[categorySlug] ?? '';
@@ -565,51 +484,6 @@ export function DashboardCategoriesManager({
     }
 
     router.refresh();
-  }
-
-  function handleCreate() {
-    if (!categoryImageFile) {
-      toast.error('Category image is required.');
-      return;
-    }
-
-    categoryCreateForm.handleSubmit(async values => {
-      startTransition(async () => {
-        const result = await createCategory({
-          name: values.name.trim(),
-          slug: values.slug.trim(),
-          image: categoryImageFile,
-          description: values.description?.trim() ?? '',
-          accent: values.accent?.trim() || undefined,
-          metaTitle: values.metaTitle?.trim() || undefined,
-          metaDescription: values.metaDescription?.trim() || undefined,
-        });
-
-        if (!result?.success) {
-          refreshWithToast(
-            result?.message ?? 'Failed to create category.',
-            'error',
-          );
-          return;
-        }
-
-        categoryCreateForm.reset({
-          name: '',
-          slug: '',
-          description: '',
-          accent: '',
-          metaTitle: '',
-          metaDescription: '',
-        });
-        setCategoryImageFile(null);
-        setCategoryImagePreview('');
-        setNewSlugAutoSync(true);
-        refreshWithToast(
-          result.message ?? 'Category created successfully.',
-          'success',
-        );
-      });
-    })();
   }
 
   function handleDelete(slug?: string) {
@@ -647,71 +521,6 @@ export function DashboardCategoriesManager({
       categorySlug: category.slug,
       label: getCategoryDisplayName(category),
     });
-  }
-
-  function startEditingCategory(category: CategoryRow) {
-    setEditingSlug(category.slug ?? null);
-    categoryEditForm.reset({
-      name: getCategoryDisplayName(category),
-      slug: category.slug ?? '',
-      description: category.description ?? '',
-      accent: category.accent ?? '',
-      metaTitle: category.metaTitle ?? '',
-      metaDescription: category.metaDescription ?? '',
-    });
-    setEditingCategoryImageFile(null);
-    setEditingCategoryImagePreview(category.image ?? '');
-    setEditingSlugAutoSync(true);
-  }
-
-  function stopEditingCategory() {
-    setEditingSlug(null);
-    categoryEditForm.reset({
-      name: '',
-      slug: '',
-      description: '',
-      accent: '',
-      metaTitle: '',
-      metaDescription: '',
-    });
-    setEditingCategoryImageFile(null);
-    setEditingCategoryImagePreview('');
-    setEditingSlugAutoSync(true);
-  }
-
-  function handleUpdate(slug?: string) {
-    if (!slug) {
-      toast.error('A category slug is required to update this item.');
-      return;
-    }
-
-    categoryEditForm.handleSubmit(async values => {
-      startTransition(async () => {
-        const result = await updateCategory(slug, {
-          name: values.name.trim(),
-          slug: values.slug.trim(),
-          description: values.description?.trim() ?? '',
-          accent: values.accent?.trim() || undefined,
-          image: editingCategoryImageFile ?? undefined,
-          metaTitle: values.metaTitle?.trim() || undefined,
-          metaDescription: values.metaDescription?.trim() || undefined,
-        });
-
-        if (!result?.success) {
-          refreshWithToast(
-            result?.message ?? 'Failed to update category.',
-            'error',
-          );
-          return;
-        }
-
-        stopEditingCategory();
-        refreshWithToast(
-          result.message ?? 'Category updated successfully.',
-          'success',
-        );
-      });
-    })();
   }
 
   function handleCreateSubCategory(categorySlug?: string) {
@@ -944,20 +753,6 @@ export function DashboardCategoriesManager({
         </Button>
       </div>
 
-      {isCreateModalOpen && (
-        <AddCategoryModal
-          categoryLength={categories?.length}
-          isOpen={isCreateModalOpen}
-          onSuccess={() => {
-            setIsCreateModalOpen(prev => !prev);
-            console.log('Success');
-          }}
-          onCancel={() => {
-            setIsCreateModalOpen(false);
-          }}
-        />
-      )}
-
       {/* Main Categories Management Table list */}
       <Card className="shadow-sm">
         <CardContent className="pt-6">
@@ -1079,7 +874,6 @@ export function DashboardCategoriesManager({
                             variant="outline"
                             disabled={isPending}
                             onClick={() => {
-                              startEditingCategory(category);
                               setIsEditModalOpen(true);
                               setSelectedCategory(category);
                             }}
@@ -1628,6 +1422,19 @@ export function DashboardCategoriesManager({
             : 'Delete category'
         }
       />
+
+      {isCreateModalOpen && (
+        <AddCategoryModal
+          categoryLength={categories?.length}
+          isOpen={isCreateModalOpen}
+          onSuccess={() => {
+            setIsCreateModalOpen(prev => !prev);
+          }}
+          onCancel={() => {
+            setIsCreateModalOpen(false);
+          }}
+        />
+      )}
 
       {isEditModalOpen && (
         <EditCategoryModal
