@@ -64,6 +64,10 @@ export async function requestBackendJson<T>(
     requestHeaders.set('Authorization', `Bearer ${token}`);
   }
 
+  const url = `${(baseUrl ?? getBackendApiBase()).replace(/\/$/, '')}${path.startsWith('/') ? path : `/${path}`}`;
+
+  console.log('🌐 API Request:', method, url);
+
   if (isJsonSerializableBody(body) && !requestHeaders.has('Content-Type')) {
     requestHeaders.set('Content-Type', 'application/json');
   }
@@ -101,5 +105,10 @@ export async function requestBackendJson<T>(
     },
   );
 
-  return (await readJsonSafely(response)) as T;
+  const data = await readJsonSafely(response);
+
+  console.log('✅ Status:', response.status);
+  console.log('📦 Response:', data);
+
+  return data as T;
 }

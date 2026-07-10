@@ -20,6 +20,8 @@ type CategorySubCategoryPayload = {
   slug: string;
   image?: File | string;
   description?: string;
+  metaTitle?: string;
+  metaDescription?: string;
   accent?: string;
   isActive?: boolean;
 };

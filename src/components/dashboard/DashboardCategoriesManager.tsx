@@ -14,6 +14,7 @@ import {
   ChevronDown,
   ImagePlus,
   Pencil,
+  Plus,
   Trash2,
   UploadCloud,
 } from 'lucide-react';
@@ -44,8 +45,23 @@ import { makeZodResolver } from '@/lib/form-validation';
 import { DeleteConfirmationDialog } from '@/components/dashboard/DeleteConfirmationDialog';
 import { AddCategoryModal } from '@/app/(dashboard)/dashboard/super-admin/categories/_components/add-category';
 import { EditCategoryModal } from '@/app/(dashboard)/dashboard/super-admin/categories/_components/edit-category';
+import { AddSubCategoryModal } from '@/app/(dashboard)/dashboard/super-admin/categories/_components/add-sub-category';
+import { EditSubCategoryModal } from '@/app/(dashboard)/dashboard/super-admin/categories/_components/edit-sub-category';
 
-type CategoryRow = {
+export interface ISubCategory {
+  name: string;
+  slug: string;
+  accent?: string;
+  description?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  isActive?: boolean;
+  image?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type CategoryRow = {
   _id: string;
   name: string;
   slug?: string;
@@ -58,16 +74,7 @@ type CategoryRow = {
   isActive?: boolean;
   createdAt?: string;
   updatedAt?: string;
-  subCategories?: Array<{
-    name: string;
-    slug: string;
-    image?: string;
-    description?: string;
-    accent?: string;
-    isActive?: boolean;
-    createdAt?: string;
-    updatedAt?: string;
-  }>;
+  subCategories?: Array<ISubCategory>;
 };
 
 type DashboardCategoriesManagerProps = {
@@ -172,9 +179,14 @@ export function DashboardCategoriesManager({
   // ** New lines:
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSubCategoryModalOpen, setIsSubCategoryModalOpen] = useState(false);
+  const [isSubCategoryEditModalOpen, setIsSubCategoryEditModalOpen] =
+    useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryRow | null>(
     null,
   );
+  const [selectedSubCategory, setSelectedSubCategory] =
+    useState<ISubCategory | null>(null);
 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -886,6 +898,19 @@ export function DashboardCategoriesManager({
                             size="sm"
                             variant="outline"
                             disabled={isPending}
+                            onClick={() => {
+                              setIsSubCategoryModalOpen(true);
+                              setSelectedCategory(category);
+                            }}
+                          >
+                            <Plus className="size-4" />
+                          </Button>
+
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={isPending}
                             onClick={() => requestDeleteCategory(category)}
                           >
                             <Trash2 className="size-4" />
@@ -1351,12 +1376,19 @@ export function DashboardCategoriesManager({
                                                 size="sm"
                                                 variant="outline"
                                                 disabled={isPending}
-                                                onClick={() =>
-                                                  startEditingSubCategory(
-                                                    category.slug ?? '',
+                                                onClick={() => {
+                                                  // startEditingSubCategory(
+                                                  //   category.slug ?? '',
+                                                  //   subCategory,
+                                                  // )
+                                                  setIsSubCategoryEditModalOpen(
+                                                    true,
+                                                  );
+                                                  setSelectedSubCategory(
                                                     subCategory,
-                                                  )
-                                                }
+                                                  );
+                                                  setSelectedCategory(category);
+                                                }}
                                               >
                                                 <Pencil className="size-4" />
                                               </Button>
@@ -1458,6 +1490,41 @@ export function DashboardCategoriesManager({
           }}
         />
       )}
+
+      {isSubCategoryModalOpen && (
+        <AddSubCategoryModal
+          categorySlug={selectedCategory?.slug as string}
+          isOpen={isSubCategoryModalOpen}
+          onCancel={() => {
+            setIsSubCategoryModalOpen(false);
+            setSelectedCategory(null);
+          }}
+          onSuccess={() => {
+            setIsSubCategoryModalOpen(false);
+            setSelectedCategory(null);
+          }}
+        />
+      )}
+
+      {isSubCategoryEditModalOpen &&
+        selectedSubCategory &&
+        selectedCategory && (
+          <EditSubCategoryModal
+            categorySlug={selectedCategory?.slug ?? ''}
+            subCategory={selectedSubCategory}
+            isOpen={isSubCategoryEditModalOpen}
+            onCancel={() => {
+              setIsSubCategoryModalOpen(false);
+              setSelectedCategory(null);
+              setSelectedSubCategory(null);
+            }}
+            onSuccess={() => {
+              setIsSubCategoryModalOpen(false);
+              setSelectedCategory(null);
+              setSelectedSubCategory(null);
+            }}
+          />
+        )}
     </div>
   );
 }
