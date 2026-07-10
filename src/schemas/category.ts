@@ -7,8 +7,7 @@ export const createCategorySchema = z.object({
       error: () => 'Category name is required!',
     })
     .trim()
-    .min(3, 'Category name must be at least 3 characters.')
-    .max(100, 'Category name cannot exceed 100 characters.'),
+    .min(3, 'Category name must be at least 3 characters.'),
 
   slug: z
     .string({
@@ -16,7 +15,6 @@ export const createCategorySchema = z.object({
     })
     .trim()
     .min(3, 'Slug is required.')
-    .max(200, 'Slug cannot exceed 100 characters.')
     .regex(
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       'Slug must contain only lowercase letters, numbers, and hyphens.',
@@ -30,24 +28,19 @@ export const createCategorySchema = z.object({
       'Please enter a valid hex color.',
     ),
 
-  description: z
-    .string()
-    .trim()
-    .max(10000, 'Description cannot exceed 500 characters.')
-    .optional()
-    .or(z.literal('')),
+  description: z.string().trim().optional().or(z.literal('')),
 
   metaTitle: z
     .string()
     .trim()
-    .max(60, 'Meta title should not exceed 60 characters.')
+
     .optional()
     .or(z.literal('')),
 
   metaDescription: z
     .string()
     .trim()
-    .max(160, 'Meta description should not exceed 160 characters.')
+
     .optional()
     .or(z.literal('')),
 
@@ -64,16 +57,14 @@ export const editCategorySchema = z.object({
       error: () => 'Category name is required!',
     })
     .trim()
-    .min(3, 'Category name must be at least 3 characters.')
-    .max(100, 'Category name cannot exceed 100 characters.'),
-
+    .min(3, 'Category name must be at least 3 characters.'),
   slug: z
     .string({
       error: 'Slug is required!',
     })
     .trim()
     .min(3, 'Slug is required.')
-    .max(200, 'Slug cannot exceed 100 characters.')
+
     .regex(
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       'Slug must contain only lowercase letters, numbers, and hyphens.',
@@ -87,24 +78,14 @@ export const editCategorySchema = z.object({
       'Please enter a valid hex color.',
     ),
 
-  description: z
-    .string()
-    .trim()
-    .max(10000, 'Description cannot exceed 500 characters.')
-    .optional()
-    .or(z.literal('')),
+  description: z.string().trim().optional().or(z.literal('')),
 
-  metaTitle: z
-    .string()
-    .trim()
-    .max(60, 'Meta title should not exceed 60 characters.')
-    .optional()
-    .or(z.literal('')),
+  metaTitle: z.string().trim().optional().or(z.literal('')),
 
   metaDescription: z
     .string()
     .trim()
-    .max(160, 'Meta description should not exceed 160 characters.')
+
     .optional()
     .or(z.literal('')),
   isActive: z.boolean({
@@ -124,8 +105,7 @@ export const createSubCategorySchema = z.object({
       error: () => 'Sub-category name is required!',
     })
     .trim()
-    .min(3, 'Sub-category name must be at least 3 characters.')
-    .max(100, 'Sub-category name cannot exceed 100 characters.'),
+    .min(3, 'Sub-category name must be at least 3 characters.'),
 
   slug: z
     .string({
@@ -133,7 +113,6 @@ export const createSubCategorySchema = z.object({
     })
     .trim()
     .min(3, 'Slug is required.')
-    .max(200, 'Slug cannot exceed 100 characters.')
     .regex(
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       'Slug must contain only lowercase letters, numbers, and hyphens.',
@@ -147,23 +126,11 @@ export const createSubCategorySchema = z.object({
       'Please enter a valid hex color.',
     ),
 
-  description: z
-    .string()
-    .trim()
-    .optional()
-    .or(z.literal('')),
+  description: z.string().trim().optional().or(z.literal('')),
 
-  metaTitle: z
-    .string()
-    .trim()
-    .optional()
-    .or(z.literal('')),
+  metaTitle: z.string().trim().optional().or(z.literal('')),
 
-  metaDescription: z
-    .string()
-    .trim()
-    .optional()
-    .or(z.literal('')),
+  metaDescription: z.string().trim().optional().or(z.literal('')),
 
   mediaAttachment: z
     .instanceof(File, {
@@ -199,17 +166,9 @@ export const editSubCategorySchema = z.object({
       'Please enter a valid hex color.',
     ),
 
-  description: z
-    .string()
-    .trim()
-    .optional()
-    .or(z.literal('')),
+  description: z.string().trim().optional().or(z.literal('')),
 
-  metaTitle: z
-    .string()
-    .trim()
-    .optional()
-    .or(z.literal('')),
+  metaTitle: z.string().trim().optional().or(z.literal('')),
 
   metaDescription: z
     .string({
