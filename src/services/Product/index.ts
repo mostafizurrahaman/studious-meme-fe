@@ -437,17 +437,18 @@ export const updateProduct = async (
     },
   );
 
-  setTimeout(() => {
-    revalidateTag(CACHE_TAGS.PRODUCTS, 'max');
-    revalidateTag(CACHE_TAGS.PRODUCT(slug), 'max');
-    revalidateTag(CACHE_TAGS.PRODUCT(nextSlug), 'max');
-    revalidateTag(CACHE_TAGS.SEARCH, 'max');
-    revalidatePath('/dashboard/admin/products');
-    revalidatePath('/dashboard/super-admin/products');
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    revalidatePath(`/product/${slug}`);
-    revalidatePath(`/product/${nextSlug}`);
-  }, 1000)
+  revalidateTag(CACHE_TAGS.PRODUCTS, 'max');
+  revalidateTag(CACHE_TAGS.PRODUCT(slug), 'max');
+  revalidateTag(CACHE_TAGS.PRODUCT(nextSlug), 'max');
+  revalidateTag(CACHE_TAGS.SEARCH, 'max');
+  revalidatePath('/dashboard/admin/products');
+  revalidatePath('/dashboard/super-admin/products');
+
+  revalidatePath(`/product/${slug}`);
+  revalidatePath(`/product/${nextSlug}`);
+
 
 
   return result;
