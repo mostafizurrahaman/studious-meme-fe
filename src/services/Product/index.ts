@@ -437,15 +437,18 @@ export const updateProduct = async (
     },
   );
 
-  revalidateTag(CACHE_TAGS.PRODUCTS, 'max');
-  revalidateTag(CACHE_TAGS.PRODUCT(slug), 'max');
-  revalidateTag(CACHE_TAGS.PRODUCT(nextSlug), 'max');
-  revalidateTag(CACHE_TAGS.SEARCH, 'max');
-  revalidatePath('/dashboard/admin/products');
-  revalidatePath('/dashboard/super-admin/products');
+  setTimeout(() => {
+    revalidateTag(CACHE_TAGS.PRODUCTS, 'max');
+    revalidateTag(CACHE_TAGS.PRODUCT(slug), 'max');
+    revalidateTag(CACHE_TAGS.PRODUCT(nextSlug), 'max');
+    revalidateTag(CACHE_TAGS.SEARCH, 'max');
+    revalidatePath('/dashboard/admin/products');
+    revalidatePath('/dashboard/super-admin/products');
 
-  revalidatePath(`/product/${slug}`);
-  revalidatePath(`/product/${nextSlug}`);
+    revalidatePath(`/product/${slug}`);
+    revalidatePath(`/product/${nextSlug}`);
+  }, 1000)
+
 
   return result;
 };

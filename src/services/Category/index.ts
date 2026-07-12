@@ -176,9 +176,11 @@ export const updateCategory = async (
     },
   );
 
-  revalidateTag(CACHE_TAGS.CATEGORIES, 'max');
-  revalidatePath('/dashboard/admin/categories');
-  revalidatePath('/dashboard/super-admin/categories');
+  setTimeout(() => {
+    revalidateTag(CACHE_TAGS.CATEGORIES, 'max');
+    revalidatePath('/dashboard/admin/categories');
+    revalidatePath('/dashboard/super-admin/categories');
+  }, 1000);
   return result;
 };
 
