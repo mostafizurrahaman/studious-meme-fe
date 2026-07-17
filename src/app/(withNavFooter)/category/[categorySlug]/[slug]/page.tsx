@@ -5,14 +5,8 @@ import { CategoryPageClient } from '@/components/CategoryPageClient';
 import { SeoScripts } from '@/components/SeoScripts';
 import { Card } from '@/components/ui/card';
 import { buildCategoryMetadata, buildCategorySchemas } from '@/lib/seo';
-import {
-  getActiveCategories,
-  getActiveCategoryBySlug,
-} from '@/services/Category';
-import {
-  mapBackendCategoryToCategoryPageEntry,
-  type BackendCategory,
-} from '@/services/Category/mappers';
+import { getActiveCategoryBySlug } from '@/services/Category';
+import { mapBackendCategoryToCategoryPageEntry } from '@/services/Category/mappers';
 import {
   getProductsByCategorySlug,
   getProductsBySubCategorySlug,
@@ -20,7 +14,7 @@ import {
 } from '@/services/Product';
 
 type Props = {
-  params: Promise<{ categorySlug: string, slug: string }>;
+  params: Promise<{ categorySlug: string; slug: string }>;
   searchParams: Promise<{
     b?: string;
     s?: string;
@@ -31,22 +25,16 @@ type Props = {
   }>;
 };
 
-export const dynamicParams = true;
-
-export async function generateStaticParams() {
-  const categoriesResult = await getActiveCategories().catch(() => null);
-
-  return Array.isArray(categoriesResult?.data)
-    ? categoriesResult.data
-      .map(item => (item as BackendCategory).slug)
-      .filter((slug): slug is string => Boolean(slug))
-      .map(slug => ({ slug }))
-    : [];
-}
+// Force dynamic rendering to support searchParams, pagination, and sorting dynamically
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: Props) {
-  const { slug } = await params;
-  const backendCategory = await getActiveCategoryBySlug(slug).catch(() => null);
+  const { categorySlug, slug: subCategorySlug } = await params;
+
+  // Correctly fetch the main category using categorySlug, not subCategorySlug
+  const backendCategory = await getActiveCategoryBySlug(categorySlug).catch(
+    () => null,
+  );
   const category = backendCategory?.data
     ? mapBackendCategoryToCategoryPageEntry(backendCategory.data)
     : null;
@@ -57,6 +45,24 @@ export async function generateMetadata({ params }: Props) {
       robots: { index: false, follow: false },
     };
   }
+
+  // // Find the selected subcategory to build accurate subcategory metadata
+  // const selectedSubCategory =
+  //   category.subCategories?.find(item => item.slug === subCategorySlug) ?? null;
+
+  // if (selectedSubCategory) {
+  //   const subCategoryEntry = {
+  //     name: selectedSubCategory.name,
+  //     slug: selectedSubCategory.slug,
+  //     href: `/category/${categorySlug}/${selectedSubCategory.slug}`,
+  //     image: selectedSubCategory.image,
+  //     description:
+  //       selectedSubCategory.description ??
+  //       `${selectedSubCategory.name} products.`,
+  //     accent: selectedSubCategory.accent ?? category.accent,
+  //   };
+  //   return buildCategoryMetadata(subCategoryEntry);
+  // }
 
   return buildCategoryMetadata(category);
 }
@@ -69,10 +75,12 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const page = Math.max(Number(query.page ?? '1') || 1, 1);
   const limit = Math.max(
     Number(query.limit ?? String(DEFAULT_CATEGORY_LIMIT)) ||
-    DEFAULT_CATEGORY_LIMIT,
+      DEFAULT_CATEGORY_LIMIT,
     1,
   );
-  const backendCategory = await getActiveCategoryBySlug(categorySlug).catch(() => null);
+  const backendCategory = await getActiveCategoryBySlug(categorySlug).catch(
+    () => null,
+  );
 
   const category = backendCategory?.data
     ? mapBackendCategoryToCategoryPageEntry(backendCategory.data)
@@ -92,25 +100,25 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const productsResult = await (
     subCategorySlug
       ? getProductsBySubCategorySlug(subCategorySlug, {
-        page,
-        limit,
-        b: query.b,
-        s: query.s,
-        p: query.p,
-      })
+          page,
+          limit,
+          b: query.b,
+          s: query.s,
+          p: query.p,
+        })
       : getProductsByCategorySlug(categorySlug, {
-        page,
-        limit,
-        b: query.b,
-        s: query.s,
-        p: query.p,
-      })
+          page,
+          limit,
+          b: query.b,
+          s: query.s,
+          p: query.p,
+        })
   ).catch(() => null);
 
   const products = productsResult?.data?.length
     ? await Promise.all(
-      productsResult.data.map(mapBackendProductToStorefrontProduct),
-    )
+        productsResult.data.map(mapBackendProductToStorefrontProduct),
+      )
     : [];
   const meta = {
     total: productsResult?.meta?.total ?? products.length,

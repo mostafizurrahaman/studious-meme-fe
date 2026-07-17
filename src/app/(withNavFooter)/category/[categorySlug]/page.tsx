@@ -12,7 +12,6 @@ import {
   getCategoryAccentStyle,
 } from '@/lib/category-accent';
 import {
-  getActiveCategories,
   getActiveCategoryBySlug,
   getSubCategoriesByCategoryId,
 } from '@/services/Category';
@@ -23,18 +22,8 @@ type Props = {
   searchParams: Promise<{ searchTerm?: string; page?: string; limit?: string }>;
 };
 
-export const dynamicParams = true;
-
-export async function generateStaticParams() {
-  const categoriesResult = await getActiveCategories().catch(() => null);
-
-  return Array.isArray(categoriesResult?.data)
-    ? categoriesResult.data
-        .map(item => item.slug)
-        .filter((slug): slug is string => Boolean(slug))
-        .map(categorySlug => ({ categorySlug }))
-    : [];
-}
+// Force dynamic rendering to support dynamic search terms, limits, and pages
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { categorySlug } = await params;
