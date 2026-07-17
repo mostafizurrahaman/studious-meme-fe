@@ -6,13 +6,23 @@ import { CACHE_REVALIDATE } from '@/lib/cache-revalidate';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { getValidAccessTokenForServerActions } from '@/lib/getValidAccessToken';
 import { slugify } from '@/lib/slug';
-import type { BackendCategory } from './mappers';
+import type {
+  BackendCategory,
+  BackendSubCategory,
+  BackendSubCategoryExtendedVersion,
+} from './mappers';
 
 type BackendEnvelope<T> = {
   success?: boolean;
   message?: string;
   data?: T;
   error?: string;
+  meta?: {
+    page?: number;
+    limit?: number;
+    total?: number;
+    totalPages?: number;
+  };
 };
 
 type CategorySubCategoryPayload = {
@@ -176,7 +186,7 @@ export const updateCategory = async (
     },
   );
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   revalidateTag(CACHE_TAGS.CATEGORIES, 'max');
   revalidatePath('/dashboard/admin/categories');
@@ -265,4 +275,51 @@ export const deleteCategorySubCategory = async (
 
   revalidateTag(CACHE_TAGS.CATEGORIES, 'max');
   return result;
+};
+
+export type SubCategoryListParams = {
+  categoryId?: string;
+  categorySlug?: string;
+  includeInActive?: boolean;
+  searchTerm?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+};
+
+export const getSubCategoriesByCategoryId = async (
+  params: SubCategoryListParams,
+): Promise<BackendEnvelope<BackendSubCategoryExtendedVersion[]>> => {
+  const searchParams = new URLSearchParams();
+
+  if (params.categoryId && !params.categorySlug) {
+    searchParams.set('categorySlug', params.categoryId);
+  }
+
+  if (!params.categoryId && params.categorySlug) {
+    searchParams.set('categorySlug', params.categorySlug);
+  }
+
+  if (params.categoryId && params.categorySlug) {
+    if (params.categoryId) searchParams.set('categoryId', params.categoryId);
+  }
+
+  if (params.includeInActive !== undefined)
+    searchParams.set('includeInActive', String(params.includeInActive));
+  if (params.searchTerm) searchParams.set('searchTerm', params.searchTerm);
+  if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+  if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+  if (params.page) searchParams.set('page', String(params.page));
+  if (params.limit) searchParams.set('limit', String(params.limit));
+
+  return requestBackendJson<
+    BackendEnvelope<BackendSubCategoryExtendedVersion[]>
+  >(`/category/sub-categories/all?${searchParams.toString()}`, {
+    method: 'GET',
+    next: {
+      revalidate: CACHE_REVALIDATE.LONG,
+      tags: [CACHE_TAGS.CATEGORIES],
+    },
+  });
 };

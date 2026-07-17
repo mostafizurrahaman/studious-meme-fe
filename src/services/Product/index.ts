@@ -165,6 +165,8 @@ export const getAllProducts = async (
   const searchParams = buildProductSearchParams(params);
   const query = searchParams.toString();
 
+  console.log(searchParams);
+
   return requestBackendJson<BackendEnvelope<BackendProduct[]>>(
     `/product/products${query ? `?${query}` : ''}`,
     {
@@ -182,6 +184,8 @@ const fetchActiveProductsPage = async (
 ) => {
   const searchParams = buildProductSearchParams(pageParams);
   const query = searchParams.toString();
+
+  console.log(searchParams);
 
   return requestBackendJson<BackendEnvelope<BackendProduct[]>>(
     `/product/products/active${query ? `?${query}` : ''}`,
@@ -226,7 +230,7 @@ export const getAllActiveProductsAcrossPages = async (
     (_, index) => index + 2,
   );
   const remainingResults = await Promise.all(
-    remainingPages.map((page) =>
+    remainingPages.map(page =>
       fetchActiveProductsPage({
         ...pageParams,
         page,
@@ -235,7 +239,7 @@ export const getAllActiveProductsAcrossPages = async (
     ),
   );
 
-  remainingResults.forEach((result) => {
+  remainingResults.forEach(result => {
     if (Array.isArray(result.data)) {
       products.push(...result.data);
     }
@@ -386,7 +390,7 @@ function toFormData(payload: Record<string, unknown>) {
     }),
   );
 
-  (images ?? []).forEach((item) => {
+  (images ?? []).forEach(item => {
     if (item instanceof File) {
       formData.append('images', item);
     }
@@ -437,7 +441,7 @@ export const updateProduct = async (
     },
   );
 
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   revalidateTag(CACHE_TAGS.PRODUCTS, 'max');
   revalidateTag(CACHE_TAGS.PRODUCT(slug), 'max');
@@ -448,8 +452,6 @@ export const updateProduct = async (
 
   revalidatePath(`/product/${slug}`);
   revalidatePath(`/product/${nextSlug}`);
-
-
 
   return result;
 };

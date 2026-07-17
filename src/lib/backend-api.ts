@@ -107,8 +107,10 @@ export async function requestBackendJson<T>(
 
   const data = await readJsonSafely(response);
 
-  console.log('✅ Status:', response.status);
-  console.log('📦 Response:', data);
+  if (path === '/category/commercial-packaging-equipment') {
+    console.log('📦 Response:', data);
+    console.log('✅ Status:', response.status);
+  }
 
   return data as T;
 }

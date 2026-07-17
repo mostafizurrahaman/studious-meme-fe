@@ -20,7 +20,7 @@ import {
 } from '@/services/Product';
 
 type Props = {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ categorySlug: string, slug: string }>;
   searchParams: Promise<{
     b?: string;
     s?: string;
@@ -38,9 +38,9 @@ export async function generateStaticParams() {
 
   return Array.isArray(categoriesResult?.data)
     ? categoriesResult.data
-        .map(item => (item as BackendCategory).slug)
-        .filter((slug): slug is string => Boolean(slug))
-        .map(slug => ({ slug }))
+      .map(item => (item as BackendCategory).slug)
+      .filter((slug): slug is string => Boolean(slug))
+      .map(slug => ({ slug }))
     : [];
 }
 
@@ -64,15 +64,15 @@ export async function generateMetadata({ params }: Props) {
 const DEFAULT_CATEGORY_LIMIT = 24;
 
 export default async function CategoryPage({ params, searchParams }: Props) {
-  const { slug } = await params;
+  const { categorySlug, slug: subCategorySlug } = await params;
   const query = await searchParams;
   const page = Math.max(Number(query.page ?? '1') || 1, 1);
   const limit = Math.max(
     Number(query.limit ?? String(DEFAULT_CATEGORY_LIMIT)) ||
-      DEFAULT_CATEGORY_LIMIT,
+    DEFAULT_CATEGORY_LIMIT,
     1,
   );
-  const backendCategory = await getActiveCategoryBySlug(slug).catch(() => null);
+  const backendCategory = await getActiveCategoryBySlug(categorySlug).catch(() => null);
 
   const category = backendCategory?.data
     ? mapBackendCategoryToCategoryPageEntry(backendCategory.data)
@@ -83,7 +83,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   }
 
   const title = 'name' in category ? category.name : category.title;
-  const subCategorySlug = query.subCategorySlug?.trim() ?? '';
+
   const selectedSubCategory =
     'subCategories' in category
       ? (category.subCategories?.find(item => item.slug === subCategorySlug) ??
@@ -92,25 +92,25 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const productsResult = await (
     subCategorySlug
       ? getProductsBySubCategorySlug(subCategorySlug, {
-          page,
-          limit,
-          b: query.b,
-          s: query.s,
-          p: query.p,
-        })
-      : getProductsByCategorySlug(slug, {
-          page,
-          limit,
-          b: query.b,
-          s: query.s,
-          p: query.p,
-        })
+        page,
+        limit,
+        b: query.b,
+        s: query.s,
+        p: query.p,
+      })
+      : getProductsByCategorySlug(categorySlug, {
+        page,
+        limit,
+        b: query.b,
+        s: query.s,
+        p: query.p,
+      })
   ).catch(() => null);
 
   const products = productsResult?.data?.length
     ? await Promise.all(
-        productsResult.data.map(mapBackendProductToStorefrontProduct),
-      )
+      productsResult.data.map(mapBackendProductToStorefrontProduct),
+    )
     : [];
   const meta = {
     total: productsResult?.meta?.total ?? products.length,

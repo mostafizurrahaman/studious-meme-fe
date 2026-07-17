@@ -14,6 +14,27 @@ export type BackendSubCategory = {
   updatedAt?: string;
 };
 
+export type BackendSubCategoryExtendedVersion = {
+  subCategorySlug: string;
+  subCategoryName: string;
+  subCategoryDescription: string;
+  subCategoryMetaTile?: string;
+  subCategoryMetaDescription?: string;
+  isSubCategoryActive: boolean;
+  subCategoryImage?: string;
+  categoryId: string;
+  categoryName: string;
+  categoryDescription: string;
+  categorySlug: string;
+  categoryMetaTile?: string;
+  categoryMetaDescription?: string;
+  isCategoryActive: boolean;
+  categoryImage?: string;
+  activeProducts: number;
+  inActiveProducts: number;
+  totalProducts: number;
+};
+
 export type BackendCategory = {
   _id?: string;
   name: string;
