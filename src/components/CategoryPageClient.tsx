@@ -184,9 +184,21 @@ export function CategoryPageClient({
                             <Button
                               key={subCategory.slug}
                               type="button"
-                              onClick={() =>
-                                updateParam('subCategorySlug', subCategory.slug)
-                              }
+                              onClick={() => {
+                                if (
+                                  pathname.includes('/category') &&
+                                  pathname?.split('/')?.length === 4
+                                ) {
+                                  router.push(
+                                    `/category/${category.slug}/${subCategory.slug}`,
+                                  );
+                                } else {
+                                  updateParam(
+                                    'subCategorySlug',
+                                    subCategory.slug,
+                                  );
+                                }
+                              }}
                               className={`h-auto rounded-full px-3 py-2 text-xs font-semibold transition ${
                                 selected
                                   ? 'bg-secondary text-secondary-foreground hover:bg-secondary/90'
@@ -223,7 +235,7 @@ export function CategoryPageClient({
                               : 'bg-muted text-foreground/75 hover:bg-muted/70'
                           }`}
                         >
-                          {label}
+                          My {label}
                         </Button>
                       ))}
                     </div>
@@ -313,8 +325,13 @@ export function CategoryPageClient({
       </Card>
 
       <div className="mt-5">
-        <h2 className="font-semibold text-lg">Description </h2>
-        <h2 className="text-base my-2">{category.description}</h2>
+        <span className="font-semibold text-lg">Description </span>
+        <h2
+          className="my-2"
+          dangerouslySetInnerHTML={{
+            __html: (selectedSubCategory?.description as string) ?? 'N/A',
+          }}
+        ></h2>
       </div>
     </>
   );

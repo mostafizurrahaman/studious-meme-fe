@@ -4,8 +4,15 @@ import { Suspense } from 'react';
 import { CategoryPageClient } from '@/components/CategoryPageClient';
 import { SeoScripts } from '@/components/SeoScripts';
 import { Card } from '@/components/ui/card';
-import { buildCategoryMetadata, buildCategorySchemas } from '@/lib/seo';
-import { getActiveCategoryBySlug } from '@/services/Category';
+import {
+  buildCategorySchemas,
+  buildSubCategoryMeta,
+  buildSubCategorySchemas,
+} from '@/lib/seo';
+import {
+  getActiveCategoryBySlug,
+  getActiveSubCategoryBySlug,
+} from '@/services/Category';
 import { mapBackendCategoryToCategoryPageEntry } from '@/services/Category/mappers';
 import {
   getProductsByCategorySlug,
@@ -29,42 +36,21 @@ type Props = {
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: Props) {
-  const { categorySlug, slug: subCategorySlug } = await params;
+  const { slug: subCategorySlug } = await params;
 
-  // Correctly fetch the main category using categorySlug, not subCategorySlug
-  const backendCategory = await getActiveCategoryBySlug(categorySlug).catch(
-    () => null,
-  );
-  const category = backendCategory?.data
-    ? mapBackendCategoryToCategoryPageEntry(backendCategory.data)
-    : null;
+  const subCategoryResult = await getActiveSubCategoryBySlug(
+    subCategorySlug,
+  ).catch(() => null);
+  const subCategory = subCategoryResult?.data;
 
-  if (!category) {
+  if (!subCategory) {
     return {
-      title: 'Category not found',
+      title: 'Sub-category not found',
       robots: { index: false, follow: false },
     };
   }
 
-  // // Find the selected subcategory to build accurate subcategory metadata
-  // const selectedSubCategory =
-  //   category.subCategories?.find(item => item.slug === subCategorySlug) ?? null;
-
-  // if (selectedSubCategory) {
-  //   const subCategoryEntry = {
-  //     name: selectedSubCategory.name,
-  //     slug: selectedSubCategory.slug,
-  //     href: `/category/${categorySlug}/${selectedSubCategory.slug}`,
-  //     image: selectedSubCategory.image,
-  //     description:
-  //       selectedSubCategory.description ??
-  //       `${selectedSubCategory.name} products.`,
-  //     accent: selectedSubCategory.accent ?? category.accent,
-  //   };
-  //   return buildCategoryMetadata(subCategoryEntry);
-  // }
-
-  return buildCategoryMetadata(category);
+  return buildSubCategoryMeta(subCategory);
 }
 
 const DEFAULT_CATEGORY_LIMIT = 24;
@@ -78,10 +64,10 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       DEFAULT_CATEGORY_LIMIT,
     1,
   );
+
   const backendCategory = await getActiveCategoryBySlug(categorySlug).catch(
     () => null,
   );
-
   const category = backendCategory?.data
     ? mapBackendCategoryToCategoryPageEntry(backendCategory.data)
     : null;
@@ -90,29 +76,26 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  const title = 'name' in category ? category.name : category.title;
+  const subCategoryResult = await getActiveSubCategoryBySlug(
+    subCategorySlug,
+  ).catch(() => null);
+  const subCategory = subCategoryResult?.data;
 
-  const selectedSubCategory =
-    'subCategories' in category
-      ? (category.subCategories?.find(item => item.slug === subCategorySlug) ??
-        null)
-      : null;
-  const productsResult = await (
-    subCategorySlug
-      ? getProductsBySubCategorySlug(subCategorySlug, {
-          page,
-          limit,
-          b: query.b,
-          s: query.s,
-          p: query.p,
-        })
-      : getProductsByCategorySlug(categorySlug, {
-          page,
-          limit,
-          b: query.b,
-          s: query.s,
-          p: query.p,
-        })
+  if (!subCategory) {
+    notFound();
+  }
+
+  const title = 'subCategoryName' in subCategory && subCategory.subCategoryName;
+
+  const productsResult = await getProductsBySubCategorySlug(
+    subCategory.subCategorySlug,
+    {
+      page,
+      limit,
+      b: query.b,
+      s: query.s,
+      p: query.p,
+    },
   ).catch(() => null);
 
   const products = productsResult?.data?.length
@@ -129,7 +112,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <SeoScripts data={buildCategorySchemas(category, products)} />
+      <SeoScripts data={buildSubCategorySchemas(subCategory, products)} />
       <main className="flex-1 bg-background pb-16">
         <div className="px-4 py-6 lg:px-6">
           <nav
@@ -166,7 +149,11 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               category={category}
               products={products}
               meta={meta}
-              selectedSubCategory={selectedSubCategory}
+              selectedSubCategory={{
+                name: subCategory?.subCategoryName,
+                slug: subCategory?.subCategorySlug,
+                description: subCategory?.subCategoryDescription,
+              }}
             />
           </Suspense>
           <Card className="mt-6 flex items-center justify-between p-4 text-sm shadow-sm">

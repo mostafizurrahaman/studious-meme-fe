@@ -20,14 +20,14 @@ export function FloatingCategoryRail({ categories }: Props) {
 
   const activeCategory = useMemo(
     () =>
-      categories.find((category) => category.slug === activeCategorySlug) ??
+      categories.find(category => category.slug === activeCategorySlug) ??
       categories[0] ??
       null,
     [activeCategorySlug, categories],
   );
 
   const activeCategoryIndex = Math.max(
-    categories.findIndex((category) => category.slug === activeCategory?.slug),
+    categories.findIndex(category => category.slug === activeCategory?.slug),
     0,
   );
 
@@ -50,7 +50,10 @@ export function FloatingCategoryRail({ categories }: Props) {
     Math.max(viewportHeight - 40, 320),
   );
   const panelTop = viewportHeight
-    ? Math.max(0, Math.min(flyoutTop, viewportHeight - 20 - estimatedPanelHeight))
+    ? Math.max(
+        0,
+        Math.min(flyoutTop, viewportHeight - 20 - estimatedPanelHeight),
+      )
     : flyoutTop;
   const connectorTop = Math.max(0, flyoutTop - panelTop);
 
@@ -77,7 +80,7 @@ export function FloatingCategoryRail({ categories }: Props) {
             </span>
           </div>
 
-          {categories.map((category) => (
+          {categories.map(category => (
             <Link
               key={category.name}
               href={category.href}
@@ -161,10 +164,10 @@ export function FloatingCategoryRail({ categories }: Props) {
               </div>
             </div>
             <div className="grid min-h-0 flex-1 gap-1 overflow-y-auto pr-1">
-              {activeCategory.subCategories.map((subCategory) => (
+              {activeCategory.subCategories.map(subCategory => (
                 <Link
                   key={subCategory.slug}
-                  href={`/category/${activeCategory.slug}?subCategorySlug=${subCategory.slug}`}
+                  href={`/category/${activeCategory.slug}/${subCategory.slug}`}
                   className="rounded-lg px-4 py-2 text-[13px] font-semibold leading-snug text-foreground/80 transition hover:bg-primary/15 hover:text-primary"
                 >
                   {subCategory.name}

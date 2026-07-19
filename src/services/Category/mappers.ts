@@ -8,6 +8,8 @@ export type BackendSubCategory = {
   slug: string;
   image?: string;
   description?: string;
+  metaTitle?: string;
+  metaDescription?: string;
   accent?: string;
   isActive?: boolean;
   createdAt?: string;
@@ -86,6 +88,8 @@ export function mapBackendCategoryToStorefrontCategory(
     description:
       category.description ?? `${name} catalog and related hardware listings.`,
     accent: getAccent(slug, category.accent),
+    metaTitle: category.metaTitle,
+    metaDescription: category.metaDescription,
     subCategories: category.subCategories
       ?.filter(subCategory => subCategory.isActive !== false)
       .map(subCategory => ({
@@ -94,6 +98,8 @@ export function mapBackendCategoryToStorefrontCategory(
         description: subCategory.description,
         image: subCategory.image,
         accent: subCategory.accent,
+        metaTitle: subCategory.metaTitle,
+        metaDescription: subCategory.metaDescription,
       })),
   };
 }

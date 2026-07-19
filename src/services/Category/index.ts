@@ -323,3 +323,18 @@ export const getSubCategoriesByCategoryId = async (
     },
   });
 };
+
+export const getActiveSubCategoryBySlug = async (
+  slug: string,
+): Promise<BackendEnvelope<BackendSubCategoryExtendedVersion>> => {
+  return requestBackendJson<BackendEnvelope<BackendSubCategoryExtendedVersion>>(
+    `/category/sub-categories/${slug}`,
+    {
+      method: 'GET',
+      next: {
+        revalidate: CACHE_REVALIDATE.LONG,
+        tags: [CACHE_TAGS.CATEGORIES],
+      },
+    },
+  );
+};

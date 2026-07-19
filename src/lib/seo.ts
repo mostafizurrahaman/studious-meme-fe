@@ -7,6 +7,7 @@ import {
   type Product,
 } from '@/lib/storefront-types';
 import { isInStockLabel } from '@/lib/stock';
+import { BackendSubCategoryExtendedVersion } from '@/services/Category/mappers';
 
 export const siteConfig = {
   name: 'Malamal.com.bd',
@@ -301,12 +302,32 @@ export function buildCategoryMetadata(category: {
   const title =
     category.metaTitle ?? category.name ?? category.title ?? 'Category';
   const metaDescription = category.metaDescription ?? category.description;
+  
 
   return buildMetadata({
     title,
     description: metaDescription,
     path: `/category/${category.slug}`,
     image: category.image,
+  });
+}
+
+export function buildSubCategoryMeta(
+  subCategory: BackendSubCategoryExtendedVersion,
+) {
+  const title =
+    subCategory.subCategoryMetaTile ??
+    subCategory.subCategoryName ??
+    'SubCategory';
+  const metaDescription =
+    subCategory.subCategoryMetaDescription ??
+    subCategory.subCategoryDescription;
+
+  return buildMetadata({
+    title,
+    description: metaDescription,
+    path: `/category/${subCategory.categorySlug}/${subCategory.subCategorySlug}`,
+    image: subCategory.subCategoryImage,
   });
 }
 
@@ -663,6 +684,61 @@ export function buildCategorySchemas(
       title,
       category.description,
       `/category/${category.slug}`,
+      products.map(product => ({
+        name: product.title,
+        url: `/product/${product.slug}`,
+        image: getProductPrimaryImage(product),
+      })),
+    ),
+  ];
+}
+
+export function buildSubCategorySchemas(
+  subCategory: BackendSubCategoryExtendedVersion,
+  inputProducts?: Product[],
+) {
+  const subTitle = subCategory.subCategoryName;
+  const parentTitle = subCategory.categoryName || 'Category';
+  const products = inputProducts ?? [];
+  const subCategoryPath = `/category/${subCategory.categorySlug}/${subCategory.subCategorySlug}`;
+
+  return [
+    buildBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Main Categories', url: '/main-categories' },
+      { name: parentTitle, url: `/category/${subCategory.categorySlug}` },
+      { name: subTitle, url: subCategoryPath },
+    ]),
+    buildFaqSchema(
+      `${subTitle} FAQ`,
+      `Frequently asked questions about ${subTitle.toLowerCase()}.`,
+      subCategoryPath,
+      [
+        {
+          question: `What products are in ${subTitle}?`,
+          answer: `This subcategory groups products related to ${subTitle.toLowerCase()} from the Malamal catalog.`,
+        },
+        {
+          question: 'Can I request a bulk quotation?',
+          answer:
+            'Yes. Use the quotation request page for project buying, wholesale quantities and special pricing.',
+        },
+        {
+          question: 'Are product prices and stock shown here?',
+          answer:
+            'Yes. Product cards show the current catalog price, stock status and brand information.',
+        },
+        {
+          question: 'Can I open a product from this subcategory page?',
+          answer:
+            'Yes. Select any product card to view details, add it to cart or place an order.',
+        },
+      ],
+    ),
+    buildCollectionSchema(
+      subTitle,
+      subCategory.subCategoryDescription,
+      subCategoryPath,
       products.map(product => ({
         name: product.title,
         url: `/product/${product.slug}`,

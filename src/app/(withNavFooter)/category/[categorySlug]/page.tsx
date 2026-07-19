@@ -41,6 +41,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  
+
   return buildCategoryMetadata(category);
 }
 
@@ -299,8 +301,13 @@ export default async function MainCategoryPage({
               </Card>
             )}
             <div className="mt-5">
-              <h2 className="font-semibold text-lg">Description </h2>
-              <h2 className="text-base my-2">{category.description}</h2>
+              <span className="font-semibold text-lg">Description </span>
+              <h2
+                className="text-base my-2"
+                dangerouslySetInnerHTML={{
+                  __html: category.description ?? 'N/A',
+                }}
+              ></h2>
             </div>
           </section>
         </div>
