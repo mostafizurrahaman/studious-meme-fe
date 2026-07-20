@@ -86,6 +86,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   }
 
   const title = 'subCategoryName' in subCategory && subCategory.subCategoryName;
+  const categoryName = subCategory.categoryName;
 
   const productsResult = await getProductsBySubCategorySlug(
     subCategory.subCategorySlug,
@@ -136,7 +137,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               </li>
               <li className="shrink-0">/</li>
               <li className="min-w-0 truncate font-semibold text-foreground/75">
-                {title}
+                {categoryName}
               </li>
             </ol>
           </nav>

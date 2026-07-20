@@ -47,7 +47,7 @@ export function CategoryPageClient({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const title = 'name' in category ? category.name : category.title;
+  // const title = 'name' in category ? category.name : category.title;
   const subCategories =
     'subCategories' in category ? (category.subCategories ?? []) : [];
   const activeStock = searchParams.get('s') ?? '';
@@ -98,7 +98,7 @@ export function CategoryPageClient({
         style={getCategoryAccentStyle(category.accent)}
       >
         <h1 className="text-2xl font-black tracking-tight sm:text-4xl">
-          {title}
+          {selectedSubCategory?.name}
         </h1>
       </section>
 
@@ -115,13 +115,13 @@ export function CategoryPageClient({
         <h1 className="text-4xl font-black">{title}</h1>
       </section> */}
 
-      <Card className="mt-6 p-4 shadow-sm">
+      <Card className="mt-6 p-4 shadow-sm flex flex-row-reverse justify-between items-center">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-foreground/60">
+          {/* <p className="text-sm text-foreground/60">
             {selectedSubCategory
               ? selectedSubCategory.name
               : 'Browse available items'}
-          </p>
+          </p> */}
           <div className="flex items-center gap-2">
             {activeCount > 0 ? (
               <Button
@@ -154,7 +154,7 @@ export function CategoryPageClient({
                   </SheetDescription>
                 </SheetHeader>
                 <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
-                  {subCategories.length > 0 ? (
+                  {/* {subCategories.length > 0 ? (
                     <section>
                       <div className="mb-3 flex items-center justify-between gap-3 whitespace-nowrap">
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/45">
@@ -211,7 +211,7 @@ export function CategoryPageClient({
                         })}
                       </div>
                     </section>
-                  ) : null}
+                  ) : null} */}
                   <section>
                     <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-foreground/45">
                       Availability
@@ -246,11 +246,11 @@ export function CategoryPageClient({
           </div>
         </div>
         <div className="flex flex-wrap gap-2 text-xs font-semibold">
-          {selectedSubCategory ? (
+          {/* {selectedSubCategory ? (
             <span className="rounded-full bg-secondary px-3 py-2 text-xs font-semibold text-secondary-foreground">
               {selectedSubCategory.name}
             </span>
-          ) : null}
+          ) : null} */}
           {activeStock ? (
             <span className="rounded-full bg-muted px-3 py-2 text-xs font-semibold text-foreground/75">
               In stock

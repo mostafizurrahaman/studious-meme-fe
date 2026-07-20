@@ -105,6 +105,11 @@ export const addCartItem = async (
     };
   }
 
+  console.log({
+    productId,
+    quantity,
+  });
+
   const result = await requestBackendJson<BackendEnvelope<BackendCart>>(
     '/cart/items',
     {
