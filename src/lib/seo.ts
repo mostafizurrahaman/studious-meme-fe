@@ -302,7 +302,6 @@ export function buildCategoryMetadata(category: {
   const title =
     category.metaTitle ?? category.name ?? category.title ?? 'Category';
   const metaDescription = category.metaDescription ?? category.description;
-  
 
   return buildMetadata({
     title,
@@ -322,6 +321,12 @@ export function buildSubCategoryMeta(
   const metaDescription =
     subCategory.subCategoryMetaDescription ??
     subCategory.subCategoryDescription;
+
+  console.log({
+    subCategory,
+    title,
+    metaDescription,
+  });
 
   return buildMetadata({
     title,
