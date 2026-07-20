@@ -191,6 +191,8 @@ export const updateCategory = async (
   revalidateTag(CACHE_TAGS.CATEGORIES, 'max');
   revalidatePath('/dashboard/admin/categories');
   revalidatePath('/dashboard/super-admin/categories');
+  revalidatePath(`/category/${id}`);
+  revalidatePath(`/category/${payload.slug}`);
 
   return result;
 };
@@ -257,6 +259,8 @@ export const updateCategorySubCategory = async (
   revalidateTag(CACHE_TAGS.CATEGORIES, 'max');
   revalidatePath('/dashboard/admin/categories');
   revalidatePath('/dashboard/super-admin/categories');
+
+  revalidatePath(`/category/${categorySlug}/${subCategorySlug}`);
   return result;
 };
 
