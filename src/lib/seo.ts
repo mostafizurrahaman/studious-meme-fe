@@ -144,7 +144,8 @@ export function buildMetadata({
 export const siteMetadata: Metadata = {
   title: {
     default: siteConfig.name,
-    template: `%s | ${siteConfig.name}`,
+    // template: `%s | ${siteConfig.name}`,
+    template: `%s`,
   },
   description: siteConfig.description,
   metadataBase: new URL(siteConfig.url),
