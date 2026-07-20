@@ -315,7 +315,7 @@ export function buildSubCategoryMeta(
   subCategory: BackendSubCategoryExtendedVersion,
 ) {
   const title =
-    subCategory.subCategoryMetaTile ??
+    subCategory.subCategoryMetaTitle ??
     subCategory.subCategoryName ??
     'SubCategory';
   const metaDescription =

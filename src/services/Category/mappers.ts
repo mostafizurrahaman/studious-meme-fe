@@ -20,7 +20,7 @@ export type BackendSubCategoryExtendedVersion = {
   subCategorySlug: string;
   subCategoryName: string;
   subCategoryDescription: string;
-  subCategoryMetaTile?: string;
+  subCategoryMetaTitle?: string;
   subCategoryMetaDescription?: string;
   isSubCategoryActive: boolean;
   subCategoryImage?: string;
@@ -28,7 +28,7 @@ export type BackendSubCategoryExtendedVersion = {
   categoryName: string;
   categoryDescription: string;
   categorySlug: string;
-  categoryMetaTile?: string;
+  categoryMetaTitle?: string;
   categoryMetaDescription?: string;
   isCategoryActive: boolean;
   categoryImage?: string;
