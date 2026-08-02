@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect, RedirectType } from 'next/navigation';
 import { ArrowUpRight, ArrowLeft } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { SeoScripts } from '@/components/SeoScripts';
@@ -19,7 +19,12 @@ import { mapBackendCategoryToCategoryPageEntry } from '@/services/Category/mappe
 
 type Props = {
   params: Promise<{ categorySlug: string }>;
-  searchParams: Promise<{ searchTerm?: string; page?: string; limit?: string }>;
+  searchParams: Promise<{
+    searchTerm?: string;
+    page?: string;
+    limit?: string;
+    subCategorySlug?: string;
+  }>;
 };
 
 // Force dynamic rendering to support dynamic search terms, limits, and pages
@@ -41,8 +46,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  
-
   return buildCategoryMetadata(category);
 }
 
@@ -52,6 +55,13 @@ export default async function MainCategoryPage({
 }: Props) {
   const { categorySlug } = await params;
   const query = await searchParams;
+
+  if (query.subCategorySlug) {
+    redirect(
+      `/category/${categorySlug}/${query.subCategorySlug}`,
+      RedirectType.replace,
+    );
+  }
 
   const searchTerm = query.searchTerm?.trim() ?? '';
   const page = Math.max(Number(query.page ?? '1') || 1, 1);
