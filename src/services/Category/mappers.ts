@@ -35,6 +35,8 @@ export type BackendSubCategoryExtendedVersion = {
   activeProducts: number;
   inActiveProducts: number;
   totalProducts: number;
+  updatedAt: string;
+  createdAt: string;
 };
 
 export type BackendCategory = {
