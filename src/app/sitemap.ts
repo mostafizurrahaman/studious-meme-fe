@@ -1,7 +1,11 @@
 import { absoluteUrl } from '@/lib/seo';
 import { getAllActiveProducts } from '@/services/Product';
-import { getActiveCategories } from '@/services/Category';
 import {
+  getActiveCategories,
+  getAllSubCategoriesForSiteMap,
+} from '@/services/Category';
+import {
+  BackendSubCategoryExtendedVersion,
   mapBackendCategoryToStorefrontCategory,
   type BackendCategory,
 } from '@/services/Category/mappers';
@@ -82,18 +86,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  const [categoriesResult, productsResult] = await Promise.all([
-    getActiveCategories().catch(() => null),
-    getAllActiveProducts({
-      fields: 'slug,updatedAt,createdAt',
-      limit: SITEMAP_PRODUCT_FETCH_LIMIT,
-    }).catch(() => null),
-  ]);
+  const [categoriesResult, subCategoriesResult, productsResult] =
+    await Promise.all([
+      getActiveCategories().catch(() => null),
+      getAllSubCategoriesForSiteMap().catch(() => null),
+      getAllActiveProducts({
+        fields: 'slug,updatedAt,createdAt',
+        limit: SITEMAP_PRODUCT_FETCH_LIMIT,
+      }).catch(() => null),
+    ]);
 
   const categoryRoutes: MetadataRoute.Sitemap = Array.isArray(
     categoriesResult?.data,
   )
-    ? categoriesResult.data.map((item) => {
+    ? categoriesResult.data.map(item => {
         const category = mapBackendCategoryToStorefrontCategory(
           item as BackendCategory,
         );
@@ -106,16 +112,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
     : [];
 
+  const subCategoriesRoutes: MetadataRoute.Sitemap = Array.isArray(
+    subCategoriesResult?.data,
+  )
+    ? subCategoriesResult?.data?.map(
+        (sub: BackendSubCategoryExtendedVersion) => ({
+          url: absoluteUrl(
+            `/category/${sub.categorySlug}/${sub.subCategorySlug}`,
+          ),
+          lastModified: toLastModified(sub.updatedAt ?? sub?.createdAt),
+          changeFrequency: 'weekly' as const,
+          priority: 0.8,
+        }),
+      )
+    : [];
+
   const productRoutes = Array.isArray(productsResult?.data)
-    ? productsResult.data.map((item) => {
+    ? productsResult.data.map(item => {
         return {
           url: absoluteUrl(`/product/${item.slug}`),
           lastModified: toLastModified(item.updatedAt ?? item.createdAt),
           changeFrequency: 'weekly' as const,
-          priority: 0.8,
+          priority: 0.9,
         };
       })
     : [];
 
-  return [...staticRoutes, ...categoryRoutes, ...productRoutes];
+  return [
+    ...staticRoutes,
+    ...categoryRoutes,
+    ...subCategoriesRoutes,
+    ...productRoutes,
+  ];
 }

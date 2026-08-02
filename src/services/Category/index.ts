@@ -290,6 +290,7 @@ export type SubCategoryListParams = {
   sortOrder?: 'asc' | 'desc';
   page?: number;
   limit?: number;
+  skipLimitAndPagination?: boolean;
 };
 
 export const getSubCategoriesByCategoryId = async (
@@ -320,6 +321,20 @@ export const getSubCategoriesByCategoryId = async (
   return requestBackendJson<
     BackendEnvelope<BackendSubCategoryExtendedVersion[]>
   >(`/category/sub-categories/all?${searchParams.toString()}`, {
+    method: 'GET',
+    next: {
+      revalidate: CACHE_REVALIDATE.LONG,
+      tags: [CACHE_TAGS.CATEGORIES],
+    },
+  });
+};
+
+export const getAllSubCategoriesForSiteMap = async (): Promise<
+  BackendEnvelope<BackendSubCategoryExtendedVersion[]>
+> => {
+  return requestBackendJson<
+    BackendEnvelope<BackendSubCategoryExtendedVersion[]>
+  >(`/category/sub-categories/all?skipLimitAndPagination=true`, {
     method: 'GET',
     next: {
       revalidate: CACHE_REVALIDATE.LONG,
