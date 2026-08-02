@@ -315,19 +315,14 @@ export function buildCategoryMetadata(category: {
 export function buildSubCategoryMeta(
   subCategory: BackendSubCategoryExtendedVersion,
 ) {
+  const subCategoryName = subCategory.subCategoryName ?? 'SubCategory';
   const title =
     subCategory.subCategoryMetaTitle ??
-    subCategory.subCategoryName ??
-    'SubCategory';
+    `${subCategoryName} Price in Bangladesh | ${siteConfig.name}`;
   const metaDescription =
     subCategory.subCategoryMetaDescription ??
-    subCategory.subCategoryDescription;
-
-  console.log({
-    subCategory,
-    title,
-    metaDescription,
-  });
+    subCategory.subCategoryDescription ??
+    `Buy ${subCategoryName} online in Bangladesh at the best price on ${siteConfig.name}. Shop top quality tools & hardware with fast delivery in Dhaka and nationwide.`;
 
   return buildMetadata({
     title,

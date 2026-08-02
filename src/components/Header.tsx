@@ -346,7 +346,7 @@ export function Header({ categories }: Props) {
                         activeCategory.subCategories.map((subCategory) => (
                           <Link
                             key={subCategory.slug}
-                            href={`/category/${activeCategory.slug}?subCategorySlug=${subCategory.slug}`}
+                            href={`/category/${activeCategory.slug}/${subCategory.slug}`}
                             className="rounded-2xl border border-border px-4 py-3 transition hover:border-primary/30 hover:bg-primary/5"
                           >
                             <div className="text-sm font-bold text-foreground">
