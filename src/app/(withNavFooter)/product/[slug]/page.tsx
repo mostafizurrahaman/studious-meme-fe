@@ -126,7 +126,7 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <>
-      <SeoScripts data={buildProductSchemas(product)} />
+      <SeoScripts data={buildProductSchemas(product, reviewSummary, approvedReviews)} />
       <main className="flex-1 bg-muted/40 pb-16">
         <div className="mx-auto w-full max-w-310 px-3 py-3 sm:px-4 sm:py-5 lg:px-0">
           <nav className="overflow-hidden text-ellipsis whitespace-nowrap text-xs font-medium text-foreground/55">

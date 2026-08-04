@@ -482,11 +482,14 @@ function buildWebPageSchema(title: string, description: string, path: string) {
   };
 }
 
-const organizationSchema = {
+export const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
+  '@id': `${siteConfig.url}/#organization`,
   name: siteConfig.name,
   url: siteConfig.url,
+  logo: absoluteUrl(siteConfig.ogImage),
+  image: absoluteUrl(siteConfig.ogImage),
   email: siteConfig.email,
   telephone: siteConfig.phone,
   description: siteConfig.description,
@@ -514,6 +517,9 @@ const organizationSchema = {
       areaServed: 'BD',
       availableLanguage: ['en', 'bn'],
     },
+  ],
+  sameAs: [
+    'https://www.facebook.com/malamal.com.bd',
   ],
 };
 
@@ -922,28 +928,51 @@ export const quotationRequestSchemas = [
   },
 ];
 
-export function buildProductSchemas(product: {
-  title: string;
-  slug: string;
-  brand: string;
-  sku: string;
-  images: string[];
-  description?: string;
-  price: string;
-  oldPrice?: string;
-  stock: string;
-  rating: string;
-  category: string;
-  categorySlug?: string;
-  youtubeVideoId?: string;
-  youtubeVideoUrl?: string;
-}) {
+export function buildProductSchemas(
+  product: {
+    title: string;
+    slug: string;
+    brand: string;
+    sku: string;
+    images: string[];
+    features?: string;
+    description?: string;
+    price: string;
+    oldPrice?: string;
+    stock: string;
+    rating: string;
+    category: string;
+    categorySlug?: string;
+    youtubeVideoId?: string;
+    youtubeVideoUrl?: string;
+  },
+  reviewSummary?: {
+    total?: number;
+    averageRating?: number;
+    productRating?: number;
+  },
+  reviews?: Array<{
+    _id?: string;
+    userName?: string;
+    user?: { name?: string };
+    rating?: number;
+    comment?: string;
+    review?: string;
+    createdAt?: string;
+  }>,
+) {
   const url = absoluteUrl(`/product/${product.slug}`);
-  const image = getProductPrimaryImage(product);
+  const primaryImage = getProductPrimaryImage(product);
+  const allImages =
+    product.images && product.images.length > 0
+      ? product.images.map((img) => absoluteUrl(img))
+      : [absoluteUrl(primaryImage)];
+
   const currentPrice = parseMoney(product.price);
   const categoryUrl = product.categorySlug?.trim()
     ? absoluteUrl(`/category/${product.categorySlug}`)
     : absoluteUrl('/shop');
+
   const offer =
     Number.isFinite(currentPrice) && currentPrice > 0
       ? {
@@ -951,11 +980,54 @@ export function buildProductSchemas(product: {
           url,
           priceCurrency: 'BDT',
           price: currentPrice,
+          priceValidUntil: `${new Date().getFullYear()}-12-31`,
           availability: isInStockLabel(product.stock)
             ? 'https://schema.org/InStock'
             : 'https://schema.org/OutOfStock',
           itemCondition: 'https://schema.org/NewCondition',
+          seller: {
+            '@type': 'Organization',
+            name: siteConfig.name,
+            '@id': `${siteConfig.url}/#organization`,
+          },
         }
+      : undefined;
+
+  const numRating =
+    reviewSummary?.averageRating ||
+    reviewSummary?.productRating ||
+    Number(product.rating) ||
+    0;
+  const reviewCount = reviewSummary?.total ?? (reviews?.length || 0);
+
+  const aggregateRating =
+    numRating > 0
+      ? {
+          '@type': 'AggregateRating',
+          ratingValue: Number(numRating.toFixed(1)),
+          reviewCount: reviewCount > 0 ? reviewCount : 1,
+          bestRating: '5',
+          worstRating: '1',
+        }
+      : undefined;
+
+  const formattedReviews =
+    reviews && reviews.length > 0
+      ? reviews.slice(0, 10).map((r) => ({
+          '@type': 'Review',
+          author: {
+            '@type': 'Person',
+            name: r.userName || r.user?.name || 'Verified Customer',
+          },
+          datePublished: r.createdAt || new Date().toISOString(),
+          reviewRating: {
+            '@type': 'Rating',
+            ratingValue: r.rating || 5,
+            bestRating: '5',
+            worstRating: '1',
+          },
+          reviewBody: r.comment || r.review || '',
+        }))
       : undefined;
 
   const videoObject = product.youtubeVideoId?.trim()
@@ -966,7 +1038,7 @@ export function buildProductSchemas(product: {
         description: product.description
           ? product.description
           : `${product.title} available from ${product.brand} on ${siteConfig.name}.`,
-        thumbnailUrl: [absoluteUrl(image)],
+        thumbnailUrl: [absoluteUrl(primaryImage)],
         embedUrl: `https://www.youtube.com/embed/${product.youtubeVideoId.trim()}`,
         contentUrl:
           product.youtubeVideoUrl?.trim() ||
@@ -1002,17 +1074,26 @@ export function buildProductSchemas(product: {
     {
       '@context': 'https://schema.org',
       '@type': 'Product',
+      '@id': `${url}#product`,
       name: product.title,
-      image: [absoluteUrl(image)],
-      description: product.description
-        ? product.description
-        : `${product.title} available from ${product.brand} on ${siteConfig.name}.`,
-      sku: product.sku,
+      image: allImages,
+      description:
+        product.description || product.features
+          ? [product.description, product.features].filter(Boolean).join(' ')
+          : `${product.title} available from ${product.brand} on ${siteConfig.name}.`,
+      sku: product.sku || product.slug,
+      mpn: product.sku || product.slug,
+      category: product.category,
+      url,
       brand: {
         '@type': 'Brand',
-        name: product.brand,
+        name: product.brand || siteConfig.name,
       },
       offers: offer,
+      ...(aggregateRating ? { aggregateRating } : {}),
+      ...(formattedReviews && formattedReviews.length > 0
+        ? { review: formattedReviews }
+        : {}),
     },
     ...(videoObject ? [videoObject] : []),
   ];
