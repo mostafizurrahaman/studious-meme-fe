@@ -35,6 +35,7 @@ export default function RootLayout({
     <html
       lang="en-US"
       data-scroll-behavior="smooth"
+      suppressHydrationWarning
       className={cn(
         'h-full',
         'antialiased',
@@ -46,7 +47,10 @@ export default function RootLayout({
       <Head />
 
       {process.env.NODE_ENV === 'production' && <MicrosoftClarity />}
-      <body className="storefront-layout min-h-full flex flex-col bg-background text-foreground">
+      <body
+        suppressHydrationWarning
+        className="storefront-layout min-h-full flex flex-col bg-background text-foreground"
+      >
         <GoogleAnalytics />
         <GoogleTagManager />
 

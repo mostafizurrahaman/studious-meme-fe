@@ -17,9 +17,9 @@ export function HomeAboutSection() {
   return (
     <Card className="mt-8 shadow-sm">
       <CardContent className="p-6">
-        <h2 className="text-xl font-medium text-secondary sm:text-2xl">
+        <h1 className="text-xl font-medium text-secondary sm:text-2xl">
           {siteConfig.name} - Online Hardware Store Bangladesh
-        </h2>
+        </h1>
         <Separator className="my-5" />
         <div className="space-y-6 text-sm leading-7 text-foreground/70">
           {visibleSections.map((section, index) => (
