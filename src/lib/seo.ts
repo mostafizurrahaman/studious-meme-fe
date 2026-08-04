@@ -90,6 +90,20 @@ export function serializeJsonLd(data: unknown) {
   return JSON.stringify(data).replace(/</g, '\\u003c');
 }
 
+export function stripHtml(html: string = ''): string {
+  if (!html) return '';
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 type MetadataInput = {
   title: string;
   description: string;
@@ -482,20 +496,26 @@ function buildWebPageSchema(title: string, description: string, path: string) {
   };
 }
 
+const cleanPhone = siteConfig.phone.replace(/\s+/g, '');
+
 export const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   '@id': `${siteConfig.url}/#organization`,
   name: siteConfig.name,
   url: siteConfig.url,
-  logo: absoluteUrl(siteConfig.ogImage),
-  image: absoluteUrl(siteConfig.ogImage),
+  logo: {
+    '@type': 'ImageObject',
+    url: absoluteUrl('/logo.png'),
+    width: 192,
+    height: 48,
+  },
   email: siteConfig.email,
-  telephone: siteConfig.phone,
+  telephone: cleanPhone,
   description: siteConfig.description,
   address: {
     '@type': 'PostalAddress',
-    streetAddress: siteConfig.address,
+    streetAddress: 'Level 11 & 12, Medona Tower, 28, Mohakhali C/A',
     addressLocality: 'Dhaka',
     postalCode: '1212',
     addressCountry: 'BD',
@@ -503,16 +523,16 @@ export const organizationSchema = {
   contactPoint: [
     {
       '@type': 'ContactPoint',
-      contactType: 'sales',
-      telephone: siteConfig.phone,
+      contactType: 'customer service',
+      telephone: cleanPhone,
       email: siteConfig.email,
       areaServed: 'BD',
       availableLanguage: ['en', 'bn'],
     },
     {
       '@type': 'ContactPoint',
-      contactType: 'support',
-      telephone: siteConfig.phone,
+      contactType: 'technical support',
+      telephone: cleanPhone,
       email: siteConfig.supportEmail,
       areaServed: 'BD',
       availableLanguage: ['en', 'bn'],
@@ -523,27 +543,24 @@ export const organizationSchema = {
   ],
 };
 
-const aboutPageSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: siteAboutSections.map(section => ({
-    '@type': 'Question',
-    name: section.heading,
-    acceptedAnswer: {
-      '@type': 'Answer',
-      text: section.content,
-    },
-  })),
-};
-
 const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
+  '@id': `${siteConfig.url}/#website`,
   name: siteConfig.name,
   url: siteConfig.url,
+  inLanguage: 'en-US',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: `${siteConfig.url}/shop?q={search_term_string}`,
+    },
+    'query-input': 'required name=search_term_string',
+  },
 };
 
-export const siteSchemas = [organizationSchema, websiteSchema, aboutPageSchema];
+export const siteSchemas = [organizationSchema, websiteSchema];
 
 export function buildHomeSchemas(input?: {
   categories?: Category[];
@@ -945,6 +962,7 @@ export function buildProductSchemas(
     categorySlug?: string;
     youtubeVideoId?: string;
     youtubeVideoUrl?: string;
+    createdAt?: string;
   },
   reviewSummary?: {
     total?: number;
@@ -973,6 +991,10 @@ export function buildProductSchemas(
     ? absoluteUrl(`/category/${product.categorySlug}`)
     : absoluteUrl('/shop');
 
+  const dynamicValidUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split('T')[0];
+
   const offer =
     Number.isFinite(currentPrice) && currentPrice > 0
       ? {
@@ -980,7 +1002,7 @@ export function buildProductSchemas(
           url,
           priceCurrency: 'BDT',
           price: currentPrice,
-          priceValidUntil: `${new Date().getFullYear()}-12-31`,
+          priceValidUntil: dynamicValidUntil,
           availability: isInStockLabel(product.stock)
             ? 'https://schema.org/InStock'
             : 'https://schema.org/OutOfStock',
@@ -1026,23 +1048,39 @@ export function buildProductSchemas(
             bestRating: '5',
             worstRating: '1',
           },
-          reviewBody: r.comment || r.review || '',
+          reviewBody: stripHtml(r.comment || r.review || ''),
         }))
       : undefined;
 
-  const videoObject = product.youtubeVideoId?.trim()
+  const rawDescription =
+    product.description || product.features
+      ? [product.description, product.features].filter(Boolean).join(' ')
+      : `${product.title} available from ${product.brand} on ${siteConfig.name}.`;
+  const cleanDescription = stripHtml(rawDescription);
+
+  const youtubeId = product.youtubeVideoId?.trim();
+  const videoObject = youtubeId
     ? {
         '@context': 'https://schema.org',
         '@type': 'VideoObject',
         name: product.title,
-        description: product.description
-          ? product.description
-          : `${product.title} available from ${product.brand} on ${siteConfig.name}.`,
-        thumbnailUrl: [absoluteUrl(primaryImage)],
-        embedUrl: `https://www.youtube.com/embed/${product.youtubeVideoId.trim()}`,
+        description: cleanDescription,
+        thumbnailUrl: [
+          `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`,
+          absoluteUrl(primaryImage),
+        ],
+        embedUrl: `https://www.youtube.com/embed/${youtubeId}`,
         contentUrl:
           product.youtubeVideoUrl?.trim() ||
-          `https://www.youtube.com/watch?v=${product.youtubeVideoId.trim()}`,
+          `https://www.youtube.com/watch?v=${youtubeId}`,
+        uploadDate: product.createdAt
+          ? new Date(product.createdAt).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0],
+        publisher: {
+          '@type': 'Organization',
+          name: siteConfig.name,
+          '@id': `${siteConfig.url}/#organization`,
+        },
       }
     : undefined;
 
@@ -1077,10 +1115,7 @@ export function buildProductSchemas(
       '@id': `${url}#product`,
       name: product.title,
       image: allImages,
-      description:
-        product.description || product.features
-          ? [product.description, product.features].filter(Boolean).join(' ')
-          : `${product.title} available from ${product.brand} on ${siteConfig.name}.`,
+      description: cleanDescription,
       sku: product.sku || product.slug,
       mpn: product.sku || product.slug,
       category: product.category,
