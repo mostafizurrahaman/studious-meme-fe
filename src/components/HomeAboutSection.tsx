@@ -24,7 +24,7 @@ export function HomeAboutSection() {
         <div className="space-y-6 text-sm leading-7 text-foreground/70">
           {visibleSections.map((section, index) => (
             <div key={index}>
-              <h2 className="font-bold text-secondary">{section.heading}</h3>
+              <h2 className="font-bold text-secondary">{section.heading}</h2>
               <p className="mt-1">{section.content}</p>
             </div>
           ))}
