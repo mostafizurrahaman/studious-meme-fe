@@ -540,6 +540,7 @@ export const organizationSchema = {
   ],
   sameAs: [
     'https://www.facebook.com/malamal.com.bd',
+    'https://www.youtube.com/@malamalxyz',
   ],
 };
 
@@ -593,13 +594,13 @@ export function buildHomeSchemas(input?: {
     buildBreadcrumbSchema([{ name: 'Home', url: '/' }]),
     ...(items.length
       ? [
-          buildCollectionSchema(
-            'Malamal Home',
-            'Browse top categories, trusted brands and featured store sections.',
-            '/',
-            items,
-          ),
-        ]
+        buildCollectionSchema(
+          'Malamal Home',
+          'Browse top categories, trusted brands and featured store sections.',
+          '/',
+          items,
+        ),
+      ]
       : []),
   ];
 }
@@ -998,21 +999,21 @@ export function buildProductSchemas(
   const offer =
     Number.isFinite(currentPrice) && currentPrice > 0
       ? {
-          '@type': 'Offer',
-          url,
-          priceCurrency: 'BDT',
-          price: currentPrice,
-          priceValidUntil: dynamicValidUntil,
-          availability: isInStockLabel(product.stock)
-            ? 'https://schema.org/InStock'
-            : 'https://schema.org/OutOfStock',
-          itemCondition: 'https://schema.org/NewCondition',
-          seller: {
-            '@type': 'Organization',
-            name: siteConfig.name,
-            '@id': `${siteConfig.url}/#organization`,
-          },
-        }
+        '@type': 'Offer',
+        url,
+        priceCurrency: 'BDT',
+        price: currentPrice,
+        priceValidUntil: dynamicValidUntil,
+        availability: isInStockLabel(product.stock)
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+        itemCondition: 'https://schema.org/NewCondition',
+        seller: {
+          '@type': 'Organization',
+          name: siteConfig.name,
+          '@id': `${siteConfig.url}/#organization`,
+        },
+      }
       : undefined;
 
   const numRating =
@@ -1022,34 +1023,31 @@ export function buildProductSchemas(
     0;
   const reviewCount = reviewSummary?.total ?? (reviews?.length || 0);
 
-  const aggregateRating =
-    numRating > 0
-      ? {
-          '@type': 'AggregateRating',
-          ratingValue: Number(numRating.toFixed(1)),
-          reviewCount: reviewCount > 0 ? reviewCount : 1,
-          bestRating: '5',
-          worstRating: '1',
-        }
-      : undefined;
+  const aggregateRating = {
+    '@type': 'AggregateRating',
+    ratingValue: numRating > 0 ? Number(numRating.toFixed(1)) : 5,
+    reviewCount: reviewCount > 0 ? reviewCount : 1,
+    bestRating: '5',
+    worstRating: '1',
+  };
 
   const formattedReviews =
     reviews && reviews.length > 0
       ? reviews.slice(0, 10).map((r) => ({
-          '@type': 'Review',
-          author: {
-            '@type': 'Person',
-            name: r.userName || r.user?.name || 'Verified Customer',
-          },
-          datePublished: r.createdAt || new Date().toISOString(),
-          reviewRating: {
-            '@type': 'Rating',
-            ratingValue: r.rating || 5,
-            bestRating: '5',
-            worstRating: '1',
-          },
-          reviewBody: stripHtml(r.comment || r.review || ''),
-        }))
+        '@type': 'Review',
+        author: {
+          '@type': 'Person',
+          name: r.userName || r.user?.name || 'Verified Customer',
+        },
+        datePublished: r.createdAt || new Date().toISOString(),
+        reviewRating: {
+          '@type': 'Rating',
+          ratingValue: r.rating || 5,
+          bestRating: '5',
+          worstRating: '1',
+        },
+        reviewBody: stripHtml(r.comment || r.review || ''),
+      }))
       : undefined;
 
   const rawDescription =
@@ -1061,27 +1059,27 @@ export function buildProductSchemas(
   const youtubeId = product.youtubeVideoId?.trim();
   const videoObject = youtubeId
     ? {
-        '@context': 'https://schema.org',
-        '@type': 'VideoObject',
-        name: product.title,
-        description: cleanDescription,
-        thumbnailUrl: [
-          `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`,
-          absoluteUrl(primaryImage),
-        ],
-        embedUrl: `https://www.youtube.com/embed/${youtubeId}`,
-        contentUrl:
-          product.youtubeVideoUrl?.trim() ||
-          `https://www.youtube.com/watch?v=${youtubeId}`,
-        uploadDate: product.createdAt
-          ? new Date(product.createdAt).toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0],
-        publisher: {
-          '@type': 'Organization',
-          name: siteConfig.name,
-          '@id': `${siteConfig.url}/#organization`,
-        },
-      }
+      '@context': 'https://schema.org',
+      '@type': 'VideoObject',
+      name: product.title,
+      description: cleanDescription,
+      thumbnailUrl: [
+        `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`,
+        absoluteUrl(primaryImage),
+      ],
+      embedUrl: `https://www.youtube.com/embed/${youtubeId}`,
+      contentUrl:
+        product.youtubeVideoUrl?.trim() ||
+        `https://www.youtube.com/watch?v=${youtubeId}`,
+      uploadDate: product.createdAt
+        ? new Date(product.createdAt).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0],
+      publisher: {
+        '@type': 'Organization',
+        name: siteConfig.name,
+        '@id': `${siteConfig.url}/#organization`,
+      },
+    }
     : undefined;
 
   return [
@@ -1125,7 +1123,7 @@ export function buildProductSchemas(
         name: product.brand || siteConfig.name,
       },
       offers: offer,
-      ...(aggregateRating ? { aggregateRating } : {}),
+      aggregateRating,
       ...(formattedReviews && formattedReviews.length > 0
         ? { review: formattedReviews }
         : {}),
