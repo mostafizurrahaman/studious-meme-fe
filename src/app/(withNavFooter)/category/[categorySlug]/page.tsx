@@ -231,9 +231,12 @@ export default async function MainCategoryPage({
                         </div>
 
                         {sub.subCategoryDescription && (
-                          <p className="relative mt-3 text-sm leading-6 text-foreground/65 line-clamp-2">
-                            {sub.subCategoryDescription}
-                          </p>
+                          <div
+                            dangerouslySetInnerHTML={{
+                              __html: sub.subCategoryDescription,
+                            }}
+                            className="relative mt-3 text-sm leading-6 text-foreground/65 line-clamp-2"
+                          ></div>
                         )}
                       </div>
 
