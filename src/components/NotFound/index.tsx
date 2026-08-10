@@ -36,7 +36,7 @@ const NotFound = () => {
             Page not found
           </p>
           <h1 className="mt-4 text-3xl font-black text-secondary sm:text-5xl">
-            This page is out of stock
+            This page is not found
           </h1>
           <p className="mt-4 max-w-xl text-sm leading-7 text-foreground/65 sm:text-base">
             The page may have moved, the link may be old, or the product shelf
@@ -57,7 +57,7 @@ const NotFound = () => {
           </div>
 
           <div className="mt-8 grid gap-2 sm:grid-cols-3">
-            {helpfulLinks.map((item) => (
+            {helpfulLinks.map(item => (
               <Link
                 key={item.href}
                 href={item.href}
