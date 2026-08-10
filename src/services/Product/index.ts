@@ -499,6 +499,8 @@ export const searchProducts = async (
     limit: String(limit),
   });
 
+ 
+
   const result = await requestBackendJson<BackendEnvelope<SearchResult>>(
     `/product/search?${params}`,
     {
