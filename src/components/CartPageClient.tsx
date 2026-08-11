@@ -144,7 +144,7 @@ export function CartPageClient() {
                   >
                     <Image
                       src={item.image}
-                      alt={item.title}
+                      alt={item.imageAlt || item.title}
                       fill
                       sizes="80px"
                       className="object-contain p-2"

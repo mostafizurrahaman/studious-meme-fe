@@ -49,7 +49,7 @@ export default async function ShopByBrandsPage() {
                     {brand.image ? (
                       <Image
                         src={brand.image}
-                        alt={brand.name}
+                        alt={brand.imageAlt || brand.name}
                         width={96}
                         height={96}
                         loading="lazy"

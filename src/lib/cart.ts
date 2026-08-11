@@ -6,6 +6,7 @@ export type CartItem = {
   title: string;
   href: Product['href'];
   image: string;
+  imageAlt?: string;
   brand: string;
   unitPrice: number;
   unitPriceLabel: string;
@@ -62,6 +63,7 @@ export function toCartItem(product: Product): CartItem {
     title: product.title,
     href: product.href,
     image: getProductPrimaryImage(product),
+    imageAlt: product.imageAlt?.[0] || product.title,
     brand: product.brand,
     unitPrice: parseMoney(product.price),
     unitPriceLabel: formatPriceLabelWithUnit(

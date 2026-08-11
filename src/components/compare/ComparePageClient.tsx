@@ -125,7 +125,7 @@ export function ComparePageClient({ authenticated, initialProducts }: Props) {
                     <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
                       <Image
                         src={getProductPrimaryImage(product)}
-                        alt={product.title}
+                        alt={product.imageAlt?.[0] || product.title}
                         fill
                         sizes="(max-width: 768px) 100vw, 288px"
                         className="object-contain p-3"

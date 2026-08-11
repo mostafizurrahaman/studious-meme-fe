@@ -31,10 +31,10 @@ export const MiniCartDropdown = React.forwardRef<
           style={
             active
               ? {
-                  backgroundColor: 'var(--primary)',
-                  borderColor: 'var(--primary)',
-                  color: '#ffffff',
-                }
+                backgroundColor: 'var(--primary)',
+                borderColor: 'var(--primary)',
+                color: '#ffffff',
+              }
               : undefined
           }
         >
@@ -62,7 +62,7 @@ export const MiniCartDropdown = React.forwardRef<
                 <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-muted">
                   <Image
                     src={item.image}
-                    alt={item.title}
+                    alt={item?.imageAlt || item.title}
                     fill
                     sizes="56px"
                     className="object-contain p-1.5"

@@ -147,17 +147,17 @@ const YOUTUBE_VIDEO_ID_PATTERN = /^[a-zA-Z0-9_-]{11}$/;
 
 type GalleryMedia =
   | {
-      type: 'image';
-      src: string;
-      thumb: string;
-      alt: string;
-    }
+    type: 'image';
+    src: string;
+    thumb: string;
+    alt: string;
+  }
   | {
-      type: 'video';
-      src: string;
-      thumb: string;
-      alt: string;
-    };
+    type: 'video';
+    src: string;
+    thumb: string;
+    alt: string;
+  };
 
 function resolveYouTubeVideoId(product: Product) {
   if (product.youtubeVideoId?.trim()) {
@@ -225,7 +225,7 @@ export function ProductDetailClient({
       type: 'image' as const,
       src: image,
       thumb: image,
-      alt: `${product.title} image ${index + 1}`,
+      alt: product?.imageAlt?.[0] || `${product.title} image ${index + 1}`,
     }));
 
     if (!youtubeVideoId) return baseItems;
@@ -262,9 +262,9 @@ export function ProductDetailClient({
 
   const selectedMediaStillExists = selectedMedia
     ? galleryItems.some(
-        (item) =>
-          item.src === selectedMedia.src && item.type === selectedMedia.type,
-      )
+      (item) =>
+        item.src === selectedMedia.src && item.type === selectedMedia.type,
+    )
     : false;
   const activeMedia = selectedMediaStillExists
     ? selectedMedia
@@ -341,8 +341,8 @@ export function ProductDetailClient({
                     className={cn(
                       'relative size-18 shrink-0 overflow-hidden rounded-lg sm:size-20',
                       activeMedia?.src === item.src &&
-                        activeMedia.type === item.type &&
-                        'ring-2 ring-primary/20',
+                      activeMedia.type === item.type &&
+                      'ring-2 ring-primary/20',
                     )}
                   >
                     <Image

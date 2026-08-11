@@ -250,7 +250,7 @@ export default async function MainCategoryPage({
                           <div className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/70 bg-background/95 transition-all duration-300 group-hover:scale-105 group-hover:border-primary/30">
                             <Image
                               src={sub.subCategoryImage}
-                              alt={sub.subCategoryName}
+                              alt={sub.subCategoryImageAlt || sub.subCategoryName}
                               width={36}
                               height={36}
                               className="h-6 w-6 object-contain p-0.5"

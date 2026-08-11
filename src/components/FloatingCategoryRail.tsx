@@ -102,7 +102,7 @@ export function FloatingCategoryRail({ categories }: Props) {
                 {category.image ? (
                   <Image
                     src={category.image}
-                    alt={category.name}
+                    alt={category.imageAlt || category.name}
                     width={24}
                     height={24}
                     className="h-4 w-4 object-contain opacity-90"

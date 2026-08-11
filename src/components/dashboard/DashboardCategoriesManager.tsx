@@ -67,6 +67,7 @@ export type CategoryRow = {
   name: string;
   slug?: string;
   image?: string;
+  imageAlt?: string;
   description?: string;
   accent?: string;
   metaTitle?: string;
