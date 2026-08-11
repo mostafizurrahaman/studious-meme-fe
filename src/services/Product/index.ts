@@ -34,6 +34,7 @@ export type BackendProduct = {
   slug: string;
   sku: string;
   images: string[];
+  imageAlt?: string[];
   features: string;
   description: string;
   price: number;
@@ -84,6 +85,7 @@ export async function mapBackendProductToStorefrontProduct(
     slug: product.slug,
     href: '/shop',
     images: product.images ?? [],
+    imageAlt: product.imageAlt ?? [],
     features: product.features ?? '',
     description: product.description ?? '',
     price: String(product.price),
@@ -353,6 +355,7 @@ type ProductMutationPayload = {
   slug: string;
   sku: string;
   images?: Array<File | string>;
+  imageAlt?: string[];
   features: string;
   description: string;
   price: number;

@@ -7,6 +7,7 @@ export type BackendSubCategory = {
   name: string;
   slug: string;
   image?: string;
+  imageAlt?: string;
   description?: string;
   metaTitle?: string;
   metaDescription?: string;
@@ -24,6 +25,7 @@ export type BackendSubCategoryExtendedVersion = {
   subCategoryMetaDescription?: string;
   isSubCategoryActive: boolean;
   subCategoryImage?: string;
+  subCategoryImageAlt?: string;
   categoryId: string;
   categoryName: string;
   categoryDescription: string;
@@ -32,6 +34,7 @@ export type BackendSubCategoryExtendedVersion = {
   categoryMetaDescription?: string;
   isCategoryActive: boolean;
   categoryImage?: string;
+  categoryImageAlt?: string;
   activeProducts: number;
   inActiveProducts: number;
   totalProducts: number;
@@ -44,6 +47,7 @@ export type BackendCategory = {
   name: string;
   slug: string;
   image?: string;
+  imageAlt?: string;
   description?: string;
   metaTitle?: string;
   metaDescription?: string;
@@ -87,6 +91,7 @@ export function mapBackendCategoryToStorefrontCategory(
     slug,
     href: `/category/${slug}`,
     image: category.image,
+    imageAlt: category.imageAlt,
     description:
       category.description ?? `${name} catalog and related hardware listings.`,
     accent: getAccent(slug, category.accent),
@@ -99,6 +104,7 @@ export function mapBackendCategoryToStorefrontCategory(
         slug: subCategory.slug,
         description: subCategory.description,
         image: subCategory.image,
+        imageAlt: subCategory.imageAlt,
         accent: subCategory.accent,
         metaTitle: subCategory.metaTitle,
         metaDescription: subCategory.metaDescription,

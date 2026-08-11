@@ -52,6 +52,7 @@ const brandEditSchema = z.object({
     .string({ error: 'Brand description is required!' })
     .trim()
     .min(1, { message: 'Brand description is required!' }),
+  imageAlt: z.string().trim().optional().or(z.literal('')),
   isActive: z.boolean().default(true),
 });
 
@@ -115,7 +116,7 @@ export function DashboardBrandsManager({
 
   const createForm = useForm<BrandCreateValues>({
     resolver: makeZodResolver(dashboardFormSchemas.brand),
-    defaultValues: { name: '', slug: '', description: '', isActive: true },
+    defaultValues: { name: '', slug: '', description: '', imageAlt: '', isActive: true },
     mode: 'onTouched',
   });
 
@@ -137,7 +138,7 @@ export function DashboardBrandsManager({
 
   const editForm = useForm<BrandEditValues>({
     resolver: makeZodResolver(brandEditSchema),
-    defaultValues: { name: '', slug: '', description: '', isActive: true },
+    defaultValues: { name: '', slug: '', description: '', imageAlt: '', isActive: true },
     mode: 'onTouched',
   });
 
@@ -289,6 +290,15 @@ export function DashboardBrandsManager({
               message={createForm.formState.errors.description?.message}
             />
           </div>
+          <div className="grid gap-1.5">
+            <DashboardInput
+              placeholder="Image Alt Text"
+              {...createForm.register('imageAlt')}
+            />
+            <ErrorText
+              message={createForm.formState.errors.imageAlt?.message}
+            />
+          </div>
           <div className="space-y-2 self-start xl:col-span-2">
             <div
               role="button"
@@ -374,6 +384,7 @@ export function DashboardBrandsManager({
                   name: values.name,
                   slug: values.slug,
                   image: brandImageFile,
+                  imageAlt: values.imageAlt?.trim() || undefined,
                   description: values.description,
                   isActive: values.isActive,
                 });
@@ -389,6 +400,7 @@ export function DashboardBrandsManager({
                   name: '',
                   slug: '',
                   description: '',
+                  imageAlt: '',
                   isActive: true,
                 });
                 setBrandImageFile(null);
@@ -431,6 +443,7 @@ export function DashboardBrandsManager({
                 <TableHead>Name</TableHead>
                 <TableHead>Slug</TableHead>
                 <TableHead>Description</TableHead>
+                <TableHead>Image Alt Text</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead>Updated At</TableHead>
                 <TableHead>Status</TableHead>
@@ -630,6 +643,39 @@ export function DashboardBrandsManager({
                         sliceText(brand.description)
                       )}
                     </TableCell>
+                    <TableCell className="min-w-0 max-w-60 whitespace-normal text-sm text-muted-foreground">
+                      {isEditing ? (
+                        <div className="grid min-w-0 gap-1.5">
+                          <label className="text-[11px] font-medium text-muted-foreground">
+                            Image Alt Text
+                          </label>
+                          <Controller
+                            control={editForm.control}
+                            name="imageAlt"
+                            render={({ field, fieldState }) => (
+                              <div className="grid min-w-0 gap-1.5">
+                                <DashboardInput
+                                  {...field}
+                                  value={field.value ?? ''}
+                                  placeholder="Brand Image Alt"
+                                  className="max-w-full"
+                                  onChange={(e) =>
+                                    field.onChange(e.target.value)
+                                  }
+                                  onBlur={field.onBlur}
+                                  aria-invalid={fieldState.invalid}
+                                />
+                                <ErrorText
+                                  message={fieldState.error?.message}
+                                />
+                              </div>
+                            )}
+                          />
+                        </div>
+                      ) : (
+                        sliceText(brand.imageAlt)
+                      )}
+                    </TableCell>
                     <TableCell className="min-w-0">
                       <span
                         className="cursor-help"
@@ -687,6 +733,7 @@ export function DashboardBrandsManager({
                                     name: values.name.trim(),
                                     slug: values.slug.trim(),
                                     image: editingBrandImageFile ?? undefined,
+                                    imageAlt: values.imageAlt?.trim() || undefined,
                                     description: values.description?.trim(),
                                     isActive: values.isActive,
                                   });
@@ -704,6 +751,7 @@ export function DashboardBrandsManager({
                                     name: '',
                                     slug: '',
                                     description: '',
+                                    imageAlt: '',
                                     isActive: true,
                                   });
                                   refresh(
@@ -728,6 +776,7 @@ export function DashboardBrandsManager({
                                   name: '',
                                   slug: '',
                                   description: '',
+                                  imageAlt: '',
                                   isActive: true,
                                 });
                               }}
@@ -751,6 +800,7 @@ export function DashboardBrandsManager({
                                   name: getBrandDisplayName(brand),
                                   slug: brand.slug,
                                   description: brand.description ?? '',
+                                  imageAlt: brand.imageAlt || '',
                                   isActive: brand.isActive,
                                 });
                                 setEditingBrandImageFile(null);

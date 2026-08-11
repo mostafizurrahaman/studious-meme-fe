@@ -44,6 +44,8 @@ export const createCategorySchema = z.object({
     .optional()
     .or(z.literal('')),
 
+  imageAlt: z.string().trim().optional().or(z.literal('')),
+
   mediaAttachment: z
     .instanceof(File, {
       message: 'Please upload a valid image.',
@@ -88,6 +90,8 @@ export const editCategorySchema = z.object({
 
     .optional()
     .or(z.literal('')),
+
+  imageAlt: z.string().trim().optional().or(z.literal('')),
   isActive: z.boolean({
     error: 'isActive is required!',
   }),
@@ -131,6 +135,8 @@ export const createSubCategorySchema = z.object({
   metaTitle: z.string().trim().optional().or(z.literal('')),
 
   metaDescription: z.string().trim().optional().or(z.literal('')),
+
+  imageAlt: z.string().trim().optional().or(z.literal('')),
 
   mediaAttachment: z
     .instanceof(File, {
@@ -177,6 +183,8 @@ export const editSubCategorySchema = z.object({
     .trim()
     .optional()
     .or(z.literal('')),
+
+  imageAlt: z.string().trim().optional().or(z.literal('')),
 
   isActive: z.boolean({
     error: 'isActive is required!',

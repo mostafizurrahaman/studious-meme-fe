@@ -250,6 +250,7 @@ export const dashboardFormSchemas = {
     name: requiredText('Brand name', 3),
     slug: requiredText('Brand slug', 3),
     description: requiredText('Brand description', 1),
+    imageAlt: z.string().trim().optional().or(z.literal('')),
     isActive: z.boolean().default(true),
   }),
 };

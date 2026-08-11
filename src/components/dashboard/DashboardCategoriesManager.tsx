@@ -57,6 +57,7 @@ export interface ISubCategory {
   metaDescription?: string;
   isActive?: boolean;
   image?: string;
+  imageAlt?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -1477,6 +1478,7 @@ export function DashboardCategoriesManager({
             description: selectedCategory?.description,
             accent: selectedCategory?.accent,
             image: selectedCategory?.image,
+            imageAlt: selectedCategory?.imageAlt,
             isActive: selectedCategory?.isActive,
             metaDescription: selectedCategory?.metaDescription,
             metaTitle: selectedCategory?.metaTitle,

@@ -63,6 +63,7 @@ export function AddCategoryModal({
       description: '',
       metaTitle: '',
       metaDescription: '',
+      imageAlt: '',
       mediaAttachment: undefined,
     },
   });
@@ -119,6 +120,7 @@ export function AddCategoryModal({
             name: data.name.trim(),
             slug: data.slug.trim(),
             image: data.mediaAttachment,
+            imageAlt: data.imageAlt?.trim() || undefined,
             description: data.description?.trim() ?? '',
             accent: data.accent?.trim() || undefined,
             metaTitle: data.metaTitle?.trim() || undefined,
@@ -317,6 +319,27 @@ export function AddCategoryModal({
                             field.onChange(file);
                             handleCategoryImageSelect(file);
                           }}
+                        />
+                        {fieldState.invalid && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <Controller
+                    name="imageAlt"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="imageAlt">Image Alt Text</FieldLabel>
+                        <Input
+                          {...field}
+                          id="imageAlt"
+                          aria-invalid={fieldState.invalid}
+                          placeholder="Image alt text for SEO"
                         />
                         {fieldState.invalid && (
                           <FieldError errors={[fieldState.error]} />

@@ -21,6 +21,7 @@ export type BackendBrand = {
   name: string;
   slug: string;
   image?: string;
+  imageAlt?: string;
   description?: string;
   isActive: boolean;
   createdAt?: string;
@@ -35,6 +36,7 @@ export async function mapBackendBrandToStorefrontBrand(
     slug: brand.slug,
     href: `/shop?b=${brand.slug}`,
     image: brand.image,
+    imageAlt: brand.imageAlt,
   };
 }
 
@@ -164,6 +166,7 @@ type BrandMutationPayload = {
   name: string;
   slug: string;
   image?: File | string;
+  imageAlt?: string;
   description?: string;
   isActive?: boolean;
 };

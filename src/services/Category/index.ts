@@ -34,6 +34,7 @@ type CategorySubCategoryPayload = {
   metaDescription?: string;
   accent?: string;
   isActive?: boolean;
+  imageAlt?: string;
 };
 
 function toFormData(payload: Record<string, unknown>) {
@@ -68,6 +69,7 @@ type CategoryMutationPayload = {
   metaDescription?: string;
   accent?: string;
   isActive?: boolean;
+  imageAlt?: string;
 };
 
 export const getAllCategories = async (): Promise<BackendEnvelope<unknown>> => {
@@ -148,6 +150,7 @@ export const createCategory = async (
         metaTitle: payload.metaTitle,
 
         metaDescription: payload.metaDescription,
+        imageAlt: payload.imageAlt,
         isActive: payload.isActive,
       }),
       token: accessToken ?? undefined,
@@ -179,6 +182,7 @@ export const updateCategory = async (
         metaTitle: payload.metaTitle,
 
         metaDescription: payload.metaDescription,
+        imageAlt: payload.imageAlt,
         accent: payload.accent,
         isActive: payload.isActive,
       }),

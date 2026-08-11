@@ -207,6 +207,7 @@ const productEditSchema = z.object({
 
   isFeatured: z.boolean().default(false),
   isNoCOD: z.boolean().default(false),
+  imageAlt: z.string().trim().optional().or(z.literal('')),
   isActive: z.boolean().default(true),
 });
 
@@ -283,6 +284,7 @@ const productCreateSchema = z.object({
 
   isFeatured: z.boolean().default(false),
   isNoCOD: z.boolean().default(false),
+  imageAlt: z.string().trim().optional().or(z.literal('')),
   isActive: z.boolean().default(true),
 });
 
@@ -567,6 +569,20 @@ function ProductFormSections({
               message={form.formState.errors.youtubeVideoUrl?.message}
             />
           </div>
+
+          <div className="grid gap-1.5 mt-2">
+            <FieldLabel>Images Alt Text</FieldLabel>
+            <DashboardInput
+              placeholder="Alt text for SEO (applies to all images)"
+              {...form.register('imageAlt')}
+            />
+            <p className="text-xs text-muted-foreground">
+              Applied to all images uploaded for this product.
+            </p>
+            <ErrorText
+              message={form.formState.errors.imageAlt?.message}
+            />
+          </div>
         </div>
       </FormSection>
 
@@ -693,6 +709,7 @@ export function DashboardProductsManager({
       sellingUnit: DEFAULT_SELLING_UNIT,
       isFeatured: false,
       isNoCOD: false,
+      imageAlt: '',
       isActive: true,
     },
     mode: 'onTouched',
@@ -748,6 +765,7 @@ export function DashboardProductsManager({
       sellingUnit: DEFAULT_SELLING_UNIT,
       isFeatured: false,
       isNoCOD: false,
+      imageAlt: '',
       isActive: true,
     },
     mode: 'onTouched',
@@ -1043,6 +1061,7 @@ export function DashboardProductsManager({
         : DEFAULT_SELLING_UNIT,
       isFeatured: product.isFeatured,
       isNoCOD: product.isNoCOD,
+      imageAlt: product.imageAlt?.[0] || '',
       isActive: product.isActive,
     });
     setEditingProductImageFiles([]);
@@ -1138,6 +1157,7 @@ export function DashboardProductsManager({
                       sellingUnit: values.sellingUnit,
                       isFeatured: values.isFeatured,
                       isNoCOD: values.isNoCOD,
+                      imageAlt: values.imageAlt?.trim() ? Array(productImageFiles.length).fill(values.imageAlt.trim()) : undefined,
                       isActive: values.isActive,
                     });
                     setIsCreating(false);
@@ -1522,6 +1542,7 @@ export function DashboardProductsManager({
                                         sellingUnit: values.sellingUnit,
                                         isFeatured: values.isFeatured,
                                         isNoCOD: values.isNoCOD,
+                                        imageAlt: values.imageAlt?.trim() ? Array(getEditingImagePayload()?.length || 1).fill(values.imageAlt.trim()) : undefined,
                                         isActive: values.isActive,
                                         images: getEditingImagePayload(),
                                       },

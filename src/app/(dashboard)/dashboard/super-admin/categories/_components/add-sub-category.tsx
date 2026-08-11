@@ -64,6 +64,7 @@ export function AddSubCategoryModal({
       description: '',
       metaTitle: '',
       metaDescription: '',
+      imageAlt: '',
       mediaAttachment: undefined,
     },
   });
@@ -116,6 +117,7 @@ export function AddSubCategoryModal({
             name: data.name.trim(),
             slug: data.slug.trim(),
             image: data.mediaAttachment,
+            imageAlt: data.imageAlt?.trim() || undefined,
             description: data.description?.trim() ?? '',
             accent: data.accent?.trim() || undefined,
             metaTitle: data?.metaTitle?.trim() as string,
@@ -316,6 +318,27 @@ export function AddSubCategoryModal({
                             field.onChange(file);
                             handleSubCategoryImageSelect(file);
                           }}
+                        />
+                        {fieldState.invalid && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <Controller
+                    name="imageAlt"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="sub-imageAlt">Image Alt Text</FieldLabel>
+                        <Input
+                          {...field}
+                          id="sub-imageAlt"
+                          aria-invalid={fieldState.invalid}
+                          placeholder="Image alt text for SEO"
                         />
                         {fieldState.invalid && (
                           <FieldError errors={[fieldState.error]} />

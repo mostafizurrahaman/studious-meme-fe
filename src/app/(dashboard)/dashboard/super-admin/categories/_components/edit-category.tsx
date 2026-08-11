@@ -45,6 +45,7 @@ interface ICategory {
   metaDescription?: string;
   isActive?: boolean;
   image?: string;
+  imageAlt?: string;
 }
 
 interface IEditCategoryModalProps {
@@ -77,6 +78,7 @@ export function EditCategoryModal({
       description: category.description || '',
       metaTitle: category.metaTitle || '',
       metaDescription: category.metaDescription || '',
+      imageAlt: category.imageAlt || '',
       isActive: category.isActive ?? true,
       mediaAttachment: undefined,
     },
@@ -109,6 +111,7 @@ export function EditCategoryModal({
         description: category.description || '',
         metaTitle: category.metaTitle || '',
         metaDescription: category.metaDescription || '',
+        imageAlt: category.imageAlt || '',
         isActive: category.isActive ?? true,
         mediaAttachment: undefined,
       });
@@ -160,6 +163,7 @@ export function EditCategoryModal({
             accent: data.accent?.trim() || undefined,
             metaTitle: data.metaTitle?.trim() || undefined,
             metaDescription: data.metaDescription?.trim() || undefined,
+            imageAlt: data.imageAlt?.trim() || undefined,
           });
 
           if (!result?.success) {
@@ -376,6 +380,27 @@ export function EditCategoryModal({
                             field.onChange(file);
                           }}
                           submitButtonText="Update Image"
+                        />
+                        {fieldState.invalid && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <Controller
+                    name="imageAlt"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="edit-imageAlt">Image Alt Text</FieldLabel>
+                        <Input
+                          {...field}
+                          id="edit-imageAlt"
+                          aria-invalid={fieldState.invalid}
+                          placeholder="Image alt text for SEO"
                         />
                         {fieldState.invalid && (
                           <FieldError errors={[fieldState.error]} />

@@ -4,6 +4,7 @@ export type StorefrontProduct = {
   slug: string;
   href: '/shop';
   images: string[];
+  imageAlt?: string[];
   features?: string;
   description?: string;
   price: string;
@@ -35,6 +36,7 @@ export type StorefrontCategory = {
   slug: string;
   href: `/category/${string}`;
   image?: string;
+  imageAlt?: string;
   description: string;
   metaTitle?: string;
   metaDescription?: string;
@@ -44,6 +46,7 @@ export type StorefrontCategory = {
     slug: string;
     description?: string;
     image?: string;
+    imageAlt?: string;
     accent?: string;
   }>;
 };
@@ -55,6 +58,7 @@ export type StorefrontBrand = {
   slug: string;
   href: `/shop?b=${string}`;
   image?: string;
+  imageAlt?: string;
 };
 
 export type Brand = StorefrontBrand;
