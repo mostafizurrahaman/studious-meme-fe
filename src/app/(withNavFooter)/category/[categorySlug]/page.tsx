@@ -315,12 +315,12 @@ export default async function MainCategoryPage({
             )}
             <div className="mt-5">
               <span className="font-semibold text-lg">Description </span>
-              <h2
-                className="text-base my-2"
+              <div
+                className="rich-text-content mt-3"
                 dangerouslySetInnerHTML={{
                   __html: category.description ?? 'N/A',
                 }}
-              ></h2>
+              />
             </div>
           </section>
         </div>

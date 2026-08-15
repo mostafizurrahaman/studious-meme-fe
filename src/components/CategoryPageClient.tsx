@@ -326,12 +326,12 @@ export function CategoryPageClient({
 
       <div className="mt-5">
         <span className="font-semibold text-lg">Description </span>
-        <h2
-          className="my-2"
+        <div
+          className="rich-text-content mt-3"
           dangerouslySetInnerHTML={{
             __html: (selectedSubCategory?.description as string) ?? 'N/A',
           }}
-        ></h2>
+        />
       </div>
     </>
   );

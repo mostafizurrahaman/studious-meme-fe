@@ -519,7 +519,7 @@ export function ProductDetailClient({
 
           {features ? (
             <div
-              className="overflow-hidden text-sm leading-6 text-foreground/75 [&_li]:ml-5 [&_ol]:list-decimal [&_p]:mb-2 [&_ul]:list-disc"
+              className="rich-text-content overflow-hidden"
               dangerouslySetInnerHTML={{ __html: features }}
             />
           ) : (
@@ -694,7 +694,7 @@ export function ProductDetailClient({
       <section className="rounded-md bg-card p-5 shadow-sm">
         <h2 className="text-xl font-medium text-secondary">Description</h2>
         <div
-          className="mt-2 text-sm leading-7 text-foreground/70 [&_a]:font-semibold [&_a]:text-primary [&_h2]:mt-6 [&_h2]:text-xl [&_h2]:font-black [&_h3]:mt-5 [&_h3]:text-lg [&_h3]:font-bold [&_li]:ml-5 [&_ol]:list-decimal [&_p]:mb-3 [&_ul]:list-disc"
+          className="rich-text-content mt-2"
           dangerouslySetInnerHTML={{
             __html:
               description ||

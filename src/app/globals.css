@@ -188,3 +188,36 @@ body {
     @apply font-sans;
   }
 }
+
+@layer components {
+  .rich-text-content {
+    @apply text-sm leading-7 text-foreground/80;
+  }
+  .rich-text-content h1 {
+    @apply mt-6 mb-4 text-2xl font-black;
+  }
+  .rich-text-content h2 {
+    @apply mt-6 mb-3 text-xl font-black;
+  }
+  .rich-text-content h3 {
+    @apply mt-5 mb-2 text-lg font-bold;
+  }
+  .rich-text-content h4 {
+    @apply mt-4 mb-2 text-base font-bold;
+  }
+  .rich-text-content p {
+    @apply mb-3;
+  }
+  .rich-text-content ul {
+    @apply list-disc pl-6 mb-4;
+  }
+  .rich-text-content ol {
+    @apply list-decimal pl-6 mb-4;
+  }
+  .rich-text-content li {
+    @apply mb-1;
+  }
+  .rich-text-content a {
+    @apply font-semibold text-primary underline underline-offset-4;
+  }
+}
