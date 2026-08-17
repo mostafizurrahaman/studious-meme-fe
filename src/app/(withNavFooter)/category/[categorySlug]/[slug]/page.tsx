@@ -1,11 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
 import { CategoryPageClient } from '@/components/CategoryPageClient';
 import { SeoScripts } from '@/components/SeoScripts';
 import { Card } from '@/components/ui/card';
 import {
-  buildCategorySchemas,
   buildSubCategoryMeta,
   buildSubCategorySchemas,
 } from '@/lib/seo';
@@ -15,7 +13,6 @@ import {
 } from '@/services/Category';
 import { mapBackendCategoryToCategoryPageEntry } from '@/services/Category/mappers';
 import {
-  getProductsByCategorySlug,
   getProductsBySubCategorySlug,
   mapBackendProductToStorefrontProduct,
 } from '@/services/Product';
@@ -85,7 +82,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  const title = 'subCategoryName' in subCategory && subCategory.subCategoryName;
   const categoryName = subCategory.categoryName;
 
   const productsResult = await getProductsBySubCategorySlug(
@@ -141,22 +137,16 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               </li>
             </ol>
           </nav>
-          <Suspense
-            fallback={
-              <Card className="p-6 shadow-sm">Loading category...</Card>
-            }
-          >
-            <CategoryPageClient
-              category={category}
-              products={products}
-              meta={meta}
-              selectedSubCategory={{
-                name: subCategory?.subCategoryName,
-                slug: subCategory?.subCategorySlug,
-                description: subCategory?.subCategoryDescription,
-              }}
-            />
-          </Suspense>
+          <CategoryPageClient
+            category={category}
+            products={products}
+            meta={meta}
+            selectedSubCategory={{
+              name: subCategory?.subCategoryName,
+              slug: subCategory?.subCategorySlug,
+              description: subCategory?.subCategoryDescription,
+            }}
+          />
           <Card className="mt-6 flex items-center justify-between p-4 text-sm shadow-sm">
             <span className="text-foreground/60">Need a broader view?</span>
             <Link

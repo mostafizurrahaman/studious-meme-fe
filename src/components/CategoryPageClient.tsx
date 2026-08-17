@@ -15,7 +15,6 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import {
-  getCategoryAccentClassName,
   getCategoryAccentClassNameForDesktop,
   getCategoryAccentStyle,
 } from '@/lib/category-accent';
@@ -48,8 +47,6 @@ export function CategoryPageClient({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   // const title = 'name' in category ? category.name : category.title;
-  const subCategories =
-    'subCategories' in category ? (category.subCategories ?? []) : [];
   const activeStock = searchParams.get('s') ?? '';
   const activePrice = searchParams.get('p') ?? '';
   const activeSubCategory = searchParams.get('subCategorySlug') ?? '';
