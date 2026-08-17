@@ -2,7 +2,7 @@
 
 import { type Route } from 'next';
 import { SlidersHorizontal } from 'lucide-react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ProductCard } from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -35,6 +35,14 @@ type Props = {
     page: number;
     totalPages: number;
   };
+  searchParams: {
+    b?: string;
+    s?: string;
+    p?: string;
+    subCategorySlug?: string;
+    page?: string;
+    limit?: string;
+  };
 };
 
 export function CategoryPageClient({
@@ -42,14 +50,13 @@ export function CategoryPageClient({
   products,
   meta,
   selectedSubCategory,
+  searchParams,
 }: Props) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  // const title = 'name' in category ? category.name : category.title;
-  const activeStock = searchParams.get('s') ?? '';
-  const activePrice = searchParams.get('p') ?? '';
-  const activeSubCategory = searchParams.get('subCategorySlug') ?? '';
+  const activeStock = searchParams.s ?? '';
+  const activePrice = searchParams.p ?? '';
+  const activeSubCategory = searchParams.subCategorySlug ?? '';
   const totalPages = Math.max(meta.totalPages, 1);
   const page = Math.min(meta.page, totalPages);
   const activeCount = [activeStock, activePrice, activeSubCategory].filter(
@@ -57,7 +64,11 @@ export function CategoryPageClient({
   ).length;
 
   function updateParam(key: string, value: string) {
-    const params = new URLSearchParams(searchParams.toString());
+    // Filter out undefined values to pass to URLSearchParams
+    const safeParams = Object.fromEntries(
+      Object.entries(searchParams).filter(([_, v]) => v !== undefined)
+    ) as Record<string, string>;
+    const params = new URLSearchParams(safeParams);
 
     if (value) params.set(key, value);
     else params.delete(key);
@@ -74,7 +85,10 @@ export function CategoryPageClient({
   }
 
   function updatePage(nextPage: number) {
-    const params = new URLSearchParams(searchParams.toString());
+    const safeParams = Object.fromEntries(
+      Object.entries(searchParams).filter(([_, v]) => v !== undefined)
+    ) as Record<string, string>;
+    const params = new URLSearchParams(safeParams);
     params.set('page', String(nextPage));
     router.replace(`${pathname}?${params.toString()}` as Route, {
       scroll: false,

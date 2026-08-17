@@ -184,6 +184,7 @@ export default async function MainCategoryPage({
                   initialSearchTerm={searchTerm}
                   placeholder="Search subcategories..."
                   className="w-full sm:w-64"
+                  searchParams={query}
                 />
                 <Link
                   href="/main-categories"

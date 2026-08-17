@@ -146,6 +146,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               slug: subCategory?.subCategorySlug,
               description: subCategory?.subCategoryDescription,
             }}
+            searchParams={query}
           />
           <Card className="mt-6 flex items-center justify-between p-4 text-sm shadow-sm">
             <span className="text-foreground/60">Need a broader view?</span>
