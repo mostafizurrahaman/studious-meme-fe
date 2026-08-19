@@ -3,10 +3,7 @@ import { notFound } from 'next/navigation';
 import { CategoryPageClient } from '@/components/CategoryPageClient';
 import { SeoScripts } from '@/components/SeoScripts';
 import { Card } from '@/components/ui/card';
-import {
-  buildSubCategoryMeta,
-  buildSubCategorySchemas,
-} from '@/lib/seo';
+import { buildSubCategoryMeta, buildSubCategorySchemas } from '@/lib/seo';
 import {
   getActiveCategoryBySlug,
   getActiveSubCategoryBySlug,
@@ -16,6 +13,7 @@ import {
   getProductsBySubCategorySlug,
   mapBackendProductToStorefrontProduct,
 } from '@/services/Product';
+import { getAllSubCategoriesForSiteMap } from '@/services/Category';
 
 type Props = {
   params: Promise<{ categorySlug: string; slug: string }>;
@@ -29,8 +27,14 @@ type Props = {
   }>;
 };
 
-// Force dynamic rendering to support searchParams, pagination, and sorting dynamically
-export const dynamic = 'force-dynamic';
+export async function generateStaticParams() {
+  const result = await getAllSubCategoriesForSiteMap().catch(() => null);
+  const subCategories = result?.data ?? [];
+  return subCategories.map(subCategory => ({
+    categorySlug: subCategory.categorySlug,
+    slug: subCategory.subCategorySlug,
+  }));
+}
 
 export async function generateMetadata({ params }: Props) {
   const { slug: subCategorySlug } = await params;

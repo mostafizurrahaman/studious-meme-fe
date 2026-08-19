@@ -14,6 +14,7 @@ import {
 import {
   getActiveCategoryBySlug,
   getSubCategoriesByCategoryId,
+  getActiveCategories,
 } from '@/services/Category';
 import { mapBackendCategoryToCategoryPageEntry } from '@/services/Category/mappers';
 
@@ -27,8 +28,11 @@ type Props = {
   }>;
 };
 
-// Force dynamic rendering to support dynamic search terms, limits, and pages
-export const dynamic = 'force-dynamic';
+export async function generateStaticParams() {
+  const result = await getActiveCategories().catch(() => null);
+  const categories = result?.data ?? [];
+  return categories.map(c => ({ categorySlug: c.slug }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { categorySlug } = await params;
@@ -251,7 +255,9 @@ export default async function MainCategoryPage({
                           <div className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/70 bg-background/95 transition-all duration-300 group-hover:scale-105 group-hover:border-primary/30">
                             <Image
                               src={sub.subCategoryImage}
-                              alt={sub.subCategoryImageAlt || sub.subCategoryName}
+                              alt={
+                                sub.subCategoryImageAlt || sub.subCategoryName
+                              }
                               width={36}
                               height={36}
                               className="h-6 w-6 object-contain p-0.5"
