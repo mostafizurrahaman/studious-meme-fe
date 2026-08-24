@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { Toaster } from 'sonner';
 import UserProvider from '@/context/UserContext';
 import { MicrosoftClarity } from '@/components/MicrosoftClarity';
+import { CartDrawer } from '@/components/cart/CartDrawer';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -71,6 +72,7 @@ export default function RootLayout({
           {children}
           <NetworkStatusGate />
           {/* <NoticePopup /> */}
+          <CartDrawer />
         </UserProvider>
       </body>
     </html>

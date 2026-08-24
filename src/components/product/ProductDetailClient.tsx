@@ -207,6 +207,7 @@ export function ProductDetailClient({
   const router = useRouter();
   const addProductQuantity = useCartStore((state) => state.addProductQuantity);
   const markItemAsSynced = useCartStore((state) => state.markItemAsSynced);
+  const setDrawerOpen = useCartStore((state) => state.setDrawerOpen);
   const handleScrollToReviews = () => {
     const target = document.getElementById('product-reviews');
 
@@ -313,7 +314,11 @@ export function ProductDetailClient({
         })
         .catch(() => null);
     }
-    if (redirect) router.push('/checkout');
+    if (redirect) {
+      router.push('/checkout');
+    } else {
+      setDrawerOpen(true);
+    }
   }
 
   return (

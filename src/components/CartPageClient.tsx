@@ -350,7 +350,7 @@ export function CartPageClient() {
                   void clearCartPersisted().catch(() => null);
                 }}
                 variant="outline"
-                className="h-11 rounded-full border-white/20 px-6 text-sm font-bold text-white hover:bg-white/10 hover:text-primary"
+                className="h-11 rounded-full border-primary/20 px-6 text-sm font-bold text-foreground hover:bg-primary/5 hover:text-primary"
               >
                 Clear cart
               </Button>

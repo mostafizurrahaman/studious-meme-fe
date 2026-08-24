@@ -12,6 +12,7 @@ import { UserDropdownMenu } from '@/components/account/UserDropdownMenu';
 import { useUser } from '@/context/UserContext';
 import { useCompareStore } from '@/lib/compare-store';
 import { useWishlistStore } from '@/lib/wishlist-store';
+import { useCartStore } from '@/lib/cart-store';
 import { getDashboardPath } from '@/lib/dashboard';
 import { siteConfig } from '@/lib/seo';
 import type { Category } from '@/lib/storefront-types';
@@ -25,7 +26,7 @@ export function Header({ categories }: Props) {
   const pathname = usePathname();
   const categoriesRef = useRef<HTMLDetailsElement>(null);
   const menuRef = useRef<HTMLDetailsElement>(null);
-  const cartRef = useRef<HTMLDetailsElement>(null);
+  const cartRef = useRef<HTMLButtonElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const lastScrollYRef = useRef(0);
   const scrollTickRef = useRef(false);
@@ -506,16 +507,31 @@ export function Header({ categories }: Props) {
                     ['Cart', '/cart'],
                     ['My account', '/my-account'],
                   ] as const
-                ).map(([label, href]) => (
-                  <Link
-                    key={label}
-                    href={href}
-                    className={drawerLinkClass(href)}
-                    style={activeDrawerStyle(href)}
-                  >
-                    {label}
-                  </Link>
-                ))}
+                ).map(([label, href]) => {
+                  if (label === 'Cart') {
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => useCartStore.getState().setDrawerOpen(true)}
+                        className={`text-left ${drawerLinkClass(href)}`}
+                        style={activeDrawerStyle(href)}
+                      >
+                        {label}
+                      </button>
+                    );
+                  }
+                  return (
+                    <Link
+                      key={label}
+                      href={href}
+                      className={drawerLinkClass(href)}
+                      style={activeDrawerStyle(href)}
+                    >
+                      {label}
+                    </Link>
+                  );
+                })}
               </div>
               <div className="mt-4">
                 <div className="text-xs font-bold uppercase tracking-[0.28em] text-primary">

@@ -21,6 +21,7 @@ export function AddToCartButton({
 }) {
   const addProduct = useCartStore((state) => state.addProduct);
   const markItemAsSynced = useCartStore((state) => state.markItemAsSynced);
+  const setDrawerOpen = useCartStore((state) => state.setDrawerOpen);
   const [added, setAdded] = useState(false);
 
   return (
@@ -34,6 +35,7 @@ export function AddToCartButton({
 
         addProduct(product);
         setAdded(true);
+        setDrawerOpen(true);
         toast.success('Added to cart.', {
           description: product.title,
         });

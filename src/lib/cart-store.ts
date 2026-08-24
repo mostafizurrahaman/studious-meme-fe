@@ -68,6 +68,8 @@ type CartState = {
   replaceItems: (items: CartItem[]) => void;
   setHydrated: (hydrated: boolean) => void;
   markItemAsSynced: (productId?: string) => void;
+  isDrawerOpen: boolean;
+  setDrawerOpen: (open: boolean) => void;
 };
 
 const defaultCheckout: CheckoutForm = {
@@ -101,6 +103,8 @@ export const useCartStore = create<CartState>()(
       isApplyingCoupon: false,
       checkout: defaultCheckout,
       orders: [],
+      isDrawerOpen: false,
+      setDrawerOpen: (open) => set({ isDrawerOpen: open }),
       addProduct: (product) => {
         if (isOutOfStockLabel(product.stock)) {
           return;
