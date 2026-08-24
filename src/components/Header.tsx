@@ -61,9 +61,7 @@ export function Header({ categories }: Props) {
         menuRef.current.open = false;
       }
 
-      if (cartRef.current && target && !cartRef.current.contains(target)) {
-        cartRef.current.open = false;
-      }
+
     };
 
     document.addEventListener('pointerdown', handlePointerDown);
@@ -118,7 +116,7 @@ export function Header({ categories }: Props) {
       if (delta > 10 && !nearTop) {
         if (categoriesRef.current) categoriesRef.current.open = false;
         if (menuRef.current) menuRef.current.open = false;
-        if (cartRef.current) cartRef.current.open = false;
+
       }
 
       lastScrollYRef.current = currentScrollY;

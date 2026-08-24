@@ -102,7 +102,7 @@ type HomePageProps = {
 
 export async function HomePage({ heroContent }: HomePageProps) {
   const heroSlides: HeroSlide[] = heroContent?.heroSection?.slides?.length
-    ? heroContent.heroSection.slides.map((slide) => ({
+    ? heroContent.heroSection.slides.map(slide => ({
         title: slide.title,
         description: slide.description,
         image: slide.image,
@@ -111,7 +111,7 @@ export async function HomePage({ heroContent }: HomePageProps) {
     : [];
 
   const heroFeatures: HeroSlide[] = heroContent?.heroSection?.features?.length
-    ? heroContent.heroSection.features.map((card) => ({
+    ? heroContent.heroSection.features.map(card => ({
         title: card.title,
         description: card.description,
         image: card.image,
@@ -184,12 +184,15 @@ export async function HomePage({ heroContent }: HomePageProps) {
 
         <Card className="mt-8 shadow-sm">
           <CardHeader className="px-5 pb-0 pt-5 sm:px-6">
-            <SectionHeading title="Featured products" actionHref="/shop" />
+            <SectionHeading
+              title="Featured products"
+              actionHref="/shop?tag=featured"
+            />
           </CardHeader>
           <CardContent className="px-5 pb-5 pt-6 sm:px-6">
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5">
               {featuredCatalog.length > 0 ? (
-                featuredCatalog.map((product) => (
+                featuredCatalog.map(product => (
                   <ProductCard key={product.sku} product={product} />
                 ))
               ) : (
@@ -203,12 +206,15 @@ export async function HomePage({ heroContent }: HomePageProps) {
 
         <Card className="mt-8 shadow-sm">
           <CardHeader className="px-5 pb-0 pt-5 sm:px-6">
-            <SectionHeading title="Latest Products" actionHref="/shop" />
+            <SectionHeading
+              title="Latest Products"
+              actionHref="/shop?tag=latest"
+            />
           </CardHeader>
           <CardContent className="px-5 pb-5 pt-6 sm:px-6">
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5">
               {latestCatalog.length > 0 ? (
-                latestCatalog.map((product) => (
+                latestCatalog.map(product => (
                   <ProductCard key={product.sku} product={product} />
                 ))
               ) : (
@@ -230,7 +236,7 @@ export async function HomePage({ heroContent }: HomePageProps) {
             </CardHeader>
             <CardContent className="px-5 pb-5 pt-6 sm:px-6">
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {categoryCards.map((card) => (
+                {categoryCards.map(card => (
                   <Link
                     key={card.slug}
                     href={card.href}
@@ -310,7 +316,7 @@ export async function HomePage({ heroContent }: HomePageProps) {
             </CardHeader>
             <CardContent className="px-5 pb-5 pt-6 sm:px-6">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-                {brandItems.map((brand) => (
+                {brandItems.map(brand => (
                   <Link
                     key={brand.name}
                     href={brand.href}
