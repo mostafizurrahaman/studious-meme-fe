@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import {
   MessageCircle,
@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils';
 import { getProductPrimaryImage, type Product } from '@/lib/storefront-types';
 import { isOutOfStockLabel } from '@/lib/stock';
 import { addCartItem } from '@/services/Cart';
+import { trackViewContent, trackAddToCart } from '@/lib/facebook-pixel';
 
 function FacebookIcon({ className }: { className?: string }) {
   return (
@@ -208,6 +209,13 @@ export function ProductDetailClient({
   const addProductQuantity = useCartStore((state) => state.addProductQuantity);
   const markItemAsSynced = useCartStore((state) => state.markItemAsSynced);
   const setDrawerOpen = useCartStore((state) => state.setDrawerOpen);
+
+  // Track ViewContent once when product page is first rendered
+  useEffect(() => {
+    trackViewContent(product);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id]);
+
   const handleScrollToReviews = () => {
     const target = document.getElementById('product-reviews');
 
@@ -301,6 +309,7 @@ export function ProductDetailClient({
     }
 
     addProductQuantity(product, quantity);
+    trackAddToCart(product, quantity);
     toast.success('Added to cart.', {
       description:
         quantity > 1 ? `${quantity} x ${product.title}` : product.title,

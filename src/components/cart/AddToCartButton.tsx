@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useCartStore } from '@/lib/cart-store';
 import type { Product } from '@/lib/storefront-types';
 import { addCartItem } from '@/services/Cart';
+import { trackAddToCart } from '@/lib/facebook-pixel';
 
 export function AddToCartButton({
   product,
@@ -34,6 +35,7 @@ export function AddToCartButton({
         }
 
         addProduct(product);
+        trackAddToCart(product, 1);
         setAdded(true);
         setDrawerOpen(true);
         toast.success('Added to cart.', {

@@ -29,6 +29,7 @@ import {
   formatShippingZoneLabel,
 } from '@/lib/fulfillment';
 import { getMyCart } from '@/services/Cart';
+import { trackPurchase } from '@/lib/facebook-pixel';
 
 const CHECKOUT_LOGIN_MESSAGE = 'Sign in to place your order.';
 
@@ -196,6 +197,17 @@ export function CheckoutPageClient() {
       window.location.href = result.gatewayUrl;
       return;
     }
+
+    // COD order — fire Purchase event
+    trackPurchase(
+      result.orderId ?? '',
+      useCartStore.getState().items,
+      calculateFulfillmentSummary({
+        items: useCartStore.getState().items,
+        city: useCartStore.getState().checkout.city,
+        couponSummary: useCartStore.getState().couponVerification,
+      }).total,
+    );
 
     const timeout = window.setTimeout(() => {
       router.push('/dashboard/user');

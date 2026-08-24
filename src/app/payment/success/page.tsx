@@ -9,6 +9,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { verifyPortPosPayment } from '@/services/Payment';
+import { PaymentSuccessPixel } from '@/components/PaymentSuccessPixel';
 
 type Props = {
   searchParams: Promise<{ orderId?: string; invoiceId?: string }>;
@@ -27,6 +28,7 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
 
   return (
     <main className="flex flex-1 items-center justify-center bg-muted/20 px-4 py-10">
+      {isPaid && <PaymentSuccessPixel orderId={orderId} total={0} />}
       <div className="w-full max-w-2xl">
         <Card className="overflow-hidden border-0 shadow-sm">
           <div className="border-b bg-background px-6 py-5 sm:px-8">

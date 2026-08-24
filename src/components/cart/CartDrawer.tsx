@@ -26,6 +26,7 @@ import {
   removeCartItem,
   clearCart as clearCartPersisted,
 } from '@/services/Cart';
+import { trackInitiateCheckout } from '@/lib/facebook-pixel';
 
 export function CartDrawer() {
   const isDrawerOpen = useCartStore(state => state.isDrawerOpen);
@@ -332,7 +333,10 @@ export function CartDrawer() {
               <Button
                 asChild
                 className="h-11 w-full rounded-full text-sm font-bold shadow-sm"
-                onClick={() => setDrawerOpen(false)}
+                onClick={() => {
+                  trackInitiateCheckout(items, total);
+                  setDrawerOpen(false);
+                }}
               >
                 <Link className="!text-white" href="/checkout">
                   Proceed to checkout

@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { searchProducts, type SearchResult } from '@/services/Product';
 import { Loader2, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { trackSearch } from '@/lib/facebook-pixel';
 
 const DEBOUNCE_MS = 600;
 
@@ -73,6 +74,7 @@ export function SearchBox() {
 
         setResults(data);
         setIsOpen(true);
+        trackSearch(query);
       } catch (error) {
         console.error('Search error:', error);
       } finally {
