@@ -25,14 +25,17 @@ export default function OurContactsPage() {
           </Card>
 
           <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {contactChannels.map((channel) => (
+            {contactChannels.map(channel => (
               <Card key={channel.label} className="p-5 shadow-sm">
                 <div className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">
                   {channel.label}
                 </div>
-                <div className="mt-3 text-lg font-black text-secondary">
+                <a
+                  href={channel.href}
+                  className="mt-3 text-lg font-black text-secondary"
+                >
                   {channel.value}
-                </div>
+                </a>
               </Card>
             ))}
           </section>
