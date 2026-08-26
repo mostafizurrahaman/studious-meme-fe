@@ -63,6 +63,7 @@ import {
   SELLING_UNIT_OPTIONS,
   isSellingUnit,
 } from '@/lib/selling-unit';
+import { ScrollArea } from '../ui/scroll-area';
 
 type Option = { value: string; label: string };
 const MAX_PRODUCT_IMAGES = 5;
@@ -1066,6 +1067,7 @@ export function DashboardProductsManager({
     });
     setEditingProductImageFiles([]);
     setEditingProductImagePreviews(product.images ?? []);
+    setHoveredEditingProductImagePreview('');
   }
 
   function stopEditingProduct() {
@@ -1093,6 +1095,7 @@ export function DashboardProductsManager({
     });
     setEditingProductImageFiles([]);
     setEditingProductImagePreviews([]);
+    setHoveredEditingProductImagePreview('');
   }
 
   function handleCategoryChange(value: string) {
@@ -1339,6 +1342,7 @@ export function DashboardProductsManager({
         </CardContent>
       </Card>
 
+    <ScrollArea className='max-h-[calc(100vh-20rem)] '>
       <Card className="shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
@@ -1355,7 +1359,7 @@ export function DashboardProductsManager({
           />
         </CardHeader>
         <CardContent>
-          <Table>
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Product Details</TableHead>
@@ -1747,6 +1751,7 @@ export function DashboardProductsManager({
                                           </div>
                                           <div className="relative mt-2 aspect-square overflow-hidden rounded-xl border bg-muted z-10">
                                             <Image
+                                              key={hoveredEditingProductImagePreview || editingProductImagePreviews[0]}
                                               height={420}
                                               width={420}
                                               src={
@@ -1808,6 +1813,8 @@ export function DashboardProductsManager({
           )}
         </CardContent>
       </Card>
+    </ScrollArea>
+    <div className='mt-10 block'></div>
 
       <DeleteConfirmationDialog
         open={Boolean(pendingDeleteProduct)}
