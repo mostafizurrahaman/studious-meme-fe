@@ -258,6 +258,7 @@ export default async function MainCategoryPage({
                               alt={
                                 sub.subCategoryImageAlt || sub.subCategoryName
                               }
+                              title={sub.subCategoryName}
                               width={36}
                               height={36}
                               className="h-6 w-6 object-contain p-0.5"

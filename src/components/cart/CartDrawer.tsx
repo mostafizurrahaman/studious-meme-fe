@@ -110,6 +110,7 @@ export function CartDrawer() {
                     <Image
                       src={item.image}
                       alt={item?.imageAlt || item.title}
+                      title={item.title}
                       fill
                       sizes="80px"
                       className="object-contain p-2"

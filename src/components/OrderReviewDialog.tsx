@@ -204,6 +204,7 @@ export function OrderReviewDialog({
                     <Image
                       src={selectedItem.image}
                       alt={selectedItem.title}
+                      title={selectedItem.title}
                       fill
                       sizes="56px"
                       className="object-cover"

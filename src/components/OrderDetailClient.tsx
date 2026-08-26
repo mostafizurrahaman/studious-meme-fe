@@ -214,6 +214,7 @@ export function OrderDetailClient({
                   <Image
                     src={item.image}
                     alt={item.title}
+                    title={item.title}
                     fill
                     sizes="80px"
                     className="object-contain p-2"

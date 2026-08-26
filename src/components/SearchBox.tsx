@@ -169,6 +169,7 @@ export function SearchBox() {
                         <Image
                           src={product.images[0]}
                           alt={product.title}
+                          title={product.title}
                           fill
                           sizes="64px"
                           className="object-contain p-1.5 transition duration-300 group-hover:scale-105"

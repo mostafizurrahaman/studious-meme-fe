@@ -39,6 +39,7 @@ export function ProductCard({
           <Image
             src={primaryImage}
             alt={product.imageAlt?.[0] || product.title}
+            title={product.title}
             fill
             priority={priority}
             loading={priority ? 'eager' : 'lazy'}

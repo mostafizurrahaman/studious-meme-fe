@@ -126,6 +126,7 @@ export function ComparePageClient({ authenticated, initialProducts }: Props) {
                       <Image
                         src={getProductPrimaryImage(product)}
                         alt={product.imageAlt?.[0] || product.title}
+                        title={product.title}
                         fill
                         sizes="(max-width: 768px) 100vw, 288px"
                         className="object-contain p-3"

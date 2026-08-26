@@ -258,6 +258,7 @@ export async function HomePage({ heroContent }: HomePageProps) {
                             <Image
                               src={card.image}
                               alt={card.imageAlt || card.name}
+                              title={card.name}
                               width={80}
                               height={80}
                               loading="lazy"
@@ -331,6 +332,7 @@ export async function HomePage({ heroContent }: HomePageProps) {
                           <Image
                             src={brand.image}
                             alt={brand.imageAlt || brand.name}
+                            title={brand.name}
                             width={64}
                             height={64}
                             loading="lazy"

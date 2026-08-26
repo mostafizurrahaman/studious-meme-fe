@@ -362,6 +362,7 @@ export function ProductDetailClient({
                     <Image
                       src={item.thumb}
                       alt={item.alt}
+                      title={product.title}
                       fill
                       sizes="80px"
                       className="object-cover rounded-lg"
@@ -409,6 +410,7 @@ export function ProductDetailClient({
                     <Image
                       src={activeMedia.src}
                       alt={product.title}
+                      title={product.title}
                       fill
                       priority
                       quality={HERO_IMAGE_QUALITY}
