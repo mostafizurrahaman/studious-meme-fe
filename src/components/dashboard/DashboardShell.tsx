@@ -238,6 +238,7 @@ import {
   BadgeCheck,
   Settings,
   ShieldUser,
+  MapPin,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -316,6 +317,7 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
     Compare: GitCompareArrows,
     Cart: ShoppingCart,
     Profile: Settings,
+    Address: MapPin,
   };
   const navItems = getDashboardNavigationItems(role).map((item) => ({
     ...item,
@@ -369,7 +371,7 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
     },
     {
       label: 'Account',
-      items: navItems.filter((item) => ['Profile'].includes(item.label)),
+      items: navItems.filter((item) => ['Profile', 'Address'].includes(item.label)),
     },
   ].filter((section) => section.items.length > 0);
 

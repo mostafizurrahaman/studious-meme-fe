@@ -24,6 +24,7 @@ export const CACHE_TAGS = {
   COMPARISON_HISTORY: 'COMPARISON_HISTORY',
   USERS: 'USERS',
   ADMINS: 'ADMINS',
+  ADDRESSES: 'ADDRESSES',
 } as const;
 
 export type CacheTag = (typeof CACHE_TAGS)[keyof typeof CACHE_TAGS] | string;
