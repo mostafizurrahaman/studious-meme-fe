@@ -49,6 +49,8 @@ export type BackendProduct = {
   weightKg?: number;
   stock?: number | null;
   rating: number;
+  metaTitle?: string;
+  metaDescription?: string;
   isFeatured: boolean;
   isNoCOD: boolean;
   isActive: boolean;
@@ -104,6 +106,8 @@ export async function mapBackendProductToStorefrontProduct(
     isFeatured: product.isFeatured,
     isNoCOD: Boolean(product.isNoCOD),
     weightKg: typeof product.weightKg === 'number' ? product.weightKg : 1,
+    metaTitle: product.metaTitle,
+    metaDescription: product.metaDescription,
     createdAt: product.createdAt,
   };
 }

@@ -209,6 +209,8 @@ const productEditSchema = z.object({
   isFeatured: z.boolean().default(false),
   isNoCOD: z.boolean().default(false),
   imageAlt: z.string().trim().optional().or(z.literal('')),
+  metaTitle: z.string().trim().optional().or(z.literal('')),
+  metaDescription: z.string().trim().optional().or(z.literal('')),
   isActive: z.boolean().default(true),
 });
 
@@ -286,6 +288,8 @@ const productCreateSchema = z.object({
   isFeatured: z.boolean().default(false),
   isNoCOD: z.boolean().default(false),
   imageAlt: z.string().trim().optional().or(z.literal('')),
+  metaTitle: z.string().trim().optional().or(z.literal('')),
+  metaDescription: z.string().trim().optional().or(z.literal('')),
   isActive: z.boolean().default(true),
 });
 
@@ -587,6 +591,32 @@ function ProductFormSections({
         </div>
       </FormSection>
 
+      <FormSection title="SEO Meta">
+        <div className="grid gap-2">
+          <div className="grid gap-1.5">
+            <FieldLabel>Meta Title</FieldLabel>
+            <DashboardInput
+              placeholder="Meta Title"
+              {...form.register('metaTitle')}
+            />
+            <ErrorText
+              message={form.formState.errors.metaTitle?.message}
+            />
+          </div>
+
+          <div className="grid gap-1.5 mt-2">
+            <FieldLabel>Meta Description</FieldLabel>
+            <DashboardInput
+              placeholder="SEO Meta Description"
+              {...form.register('metaDescription')}
+            />
+            <ErrorText
+              message={form.formState.errors.metaDescription?.message}
+            />
+          </div>
+        </div>
+      </FormSection>
+
       <FormSection title="Options">
         <div className="flex flex-wrap gap-3">
           <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -711,6 +741,8 @@ export function DashboardProductsManager({
       isFeatured: false,
       isNoCOD: false,
       imageAlt: '',
+      metaTitle: '',
+      metaDescription: '',
       isActive: true,
     },
     mode: 'onTouched',
@@ -767,6 +799,8 @@ export function DashboardProductsManager({
       isFeatured: false,
       isNoCOD: false,
       imageAlt: '',
+      metaTitle: '',
+      metaDescription: '',
       isActive: true,
     },
     mode: 'onTouched',
