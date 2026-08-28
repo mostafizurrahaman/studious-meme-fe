@@ -584,9 +584,7 @@ function ProductFormSections({
             <p className="text-xs text-muted-foreground">
               Applied to all images uploaded for this product.
             </p>
-            <ErrorText
-              message={form.formState.errors.imageAlt?.message}
-            />
+            <ErrorText message={form.formState.errors.imageAlt?.message} />
           </div>
         </div>
       </FormSection>
@@ -599,15 +597,15 @@ function ProductFormSections({
               placeholder="Meta Title"
               {...form.register('metaTitle')}
             />
-            <ErrorText
-              message={form.formState.errors.metaTitle?.message}
-            />
+            <ErrorText message={form.formState.errors.metaTitle?.message} />
           </div>
 
           <div className="grid gap-1.5 mt-2">
             <FieldLabel>Meta Description</FieldLabel>
-            <DashboardInput
+            <textarea
               placeholder="SEO Meta Description"
+              rows={5}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
               {...form.register('metaDescription')}
             />
             <ErrorText
@@ -687,6 +685,7 @@ export function DashboardProductsManager({
   brandOptions,
   categories,
 }: DashboardProductsManagerProps) {
+  console.log(products?.[0]);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -1096,7 +1095,9 @@ export function DashboardProductsManager({
         : DEFAULT_SELLING_UNIT,
       isFeatured: product.isFeatured,
       isNoCOD: product.isNoCOD,
-      imageAlt: product.imageAlt?.[0] || '',
+      metaDescription: product.metaTitle,
+      metaTitle: product.metaTitle,
+      imageAlt: product?.imageAlt?.[0] || '',
       isActive: product.isActive,
     });
     setEditingProductImageFiles([]);
@@ -1194,7 +1195,14 @@ export function DashboardProductsManager({
                       sellingUnit: values.sellingUnit,
                       isFeatured: values.isFeatured,
                       isNoCOD: values.isNoCOD,
-                      imageAlt: values.imageAlt?.trim() ? Array(productImageFiles.length).fill(values.imageAlt.trim()) : undefined,
+                      imageAlt: values.imageAlt?.trim()
+                        ? Array(productImageFiles.length).fill(
+                            values.imageAlt.trim(),
+                          )
+                        : undefined,
+                      metaTitle: values.metaTitle?.trim() || undefined,
+                      metaDescription:
+                        values.metaDescription?.trim() || undefined,
                       isActive: values.isActive,
                     });
                     setIsCreating(false);
@@ -1223,6 +1231,8 @@ export function DashboardProductsManager({
                       sellingUnit: DEFAULT_SELLING_UNIT,
                       isFeatured: false,
                       isNoCOD: false,
+                      metaTitle: '',
+                      metaDescription: '',
                       isActive: true,
                     });
                     productImagePreviews.forEach(preview => {
@@ -1376,479 +1386,505 @@ export function DashboardProductsManager({
         </CardContent>
       </Card>
 
-    <ScrollArea className='max-h-[calc(100vh-20rem)] '>
-      <Card className="shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <div>
-            <CardTitle>Products</CardTitle>
-            <CardDescription>
-              Showing {products.length} of {paginationMeta.total} items
-            </CardDescription>
-          </div>
-          <TableFilter
-            key={searchTerm}
-            value={search}
-            onChange={handleSearchChange}
-            placeholder="Search products..."
-          />
-        </CardHeader>
-        <CardContent>
+      <ScrollArea className="max-h-[calc(100vh-20rem)] ">
+        <Card className="shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <div>
+              <CardTitle>Products</CardTitle>
+              <CardDescription>
+                Showing {products.length} of {paginationMeta.total} items
+              </CardDescription>
+            </div>
+            <TableFilter
+              key={searchTerm}
+              value={search}
+              onChange={handleSearchChange}
+              placeholder="Search products..."
+            />
+          </CardHeader>
+          <CardContent>
             <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Product Details</TableHead>
-                <TableHead>Brand</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Badge</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Featured</TableHead>
-                <TableHead>No COD</TableHead>
-                <TableHead>Weight</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.map(product => {
-                const isEditing = editingSlug === product.slug;
-                return (
-                  <Fragment key={product.sku}>
-                    <TableRow>
-                      <TableCell className="min-w-0 whitespace-normal font-medium">
-                        <div className="grid min-w-0 gap-1.5 rounded-md px-1 py-0.5">
-                          <span className="truncate text-sm font-medium text-foreground">
-                            {product.title}
-                          </span>
-                          <span className="truncate text-xs font-normal text-muted-foreground">
-                            Slug: {product.slug}
-                          </span>
-                          <div className="grid gap-0.5 text-xs text-muted-foreground">
-                            <div className="flex min-w-0 items-center gap-2">
-                              <span className="shrink-0">Product ID:</span>
-                              <code className="min-w-0 max-w-48 truncate rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[11px] font-medium text-foreground/90">
-                                {product._id ?? '-'}
-                              </code>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground"
-                                onClick={() => handleCopyProductId(product._id)}
-                                disabled={!product._id}
-                                title="Copy product ID"
-                                aria-label={`Copy product ID for ${product.title}`}
-                              >
-                                <Copy className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                            <div className="flex items-start gap-2">
-                              <span className="shrink-0">Category:</span>
-                              <span className="min-w-0 truncate text-foreground/80">
-                                {resolveProductRefLabel(product.category)}
-                              </span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                              <span className="shrink-0">Sub category:</span>
-                              <span className="min-w-0 truncate text-foreground/80">
-                                {product.subCategorySlug?.trim() || '-'}
-                              </span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                              <span className="shrink-0">Selling unit:</span>
-                              <span className="min-w-0 truncate text-foreground/80">
-                                {isSellingUnit(product.sellingUnit)
-                                  ? product.sellingUnit
-                                  : DEFAULT_SELLING_UNIT}
-                              </span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                              <span className="shrink-0">Created at:</span>
-                              <span
-                                className="cursor-help min-w-0 truncate text-foreground/80"
-                                title={formatDashboardDate(product.createdAt, {
-                                  time: true,
-                                })}
-                              >
-                                {formatDashboardDate(product.createdAt)}
-                              </span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                              <span className="shrink-0">Updated at:</span>
-                              <span
-                                className="cursor-help min-w-0 truncate text-foreground/80"
-                                title={formatDashboardDate(product.updatedAt, {
-                                  time: true,
-                                })}
-                              >
-                                {formatDashboardDate(product.updatedAt)}
-                              </span>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Product Details</TableHead>
+                  <TableHead>Brand</TableHead>
+                  <TableHead>SKU</TableHead>
+                  <TableHead>Badge</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Stock</TableHead>
+                  <TableHead>Featured</TableHead>
+                  <TableHead>No COD</TableHead>
+                  <TableHead>Weight</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {products.map(product => {
+                  const isEditing = editingSlug === product.slug;
+                  return (
+                    <Fragment key={product.sku}>
+                      <TableRow>
+                        <TableCell className="min-w-0 whitespace-normal font-medium">
+                          <div className="grid min-w-0 gap-1.5 rounded-md px-1 py-0.5">
+                            <span className="truncate text-sm font-medium text-foreground">
+                              {product.title}
+                            </span>
+                            <span className="truncate text-xs font-normal text-muted-foreground">
+                              Slug: {product.slug}
+                            </span>
+                            <div className="grid gap-0.5 text-xs text-muted-foreground">
+                              <div className="flex min-w-0 items-center gap-2">
+                                <span className="shrink-0">Product ID:</span>
+                                <code className="min-w-0 max-w-48 truncate rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[11px] font-medium text-foreground/90">
+                                  {product._id ?? '-'}
+                                </code>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground"
+                                  onClick={() =>
+                                    handleCopyProductId(product._id)
+                                  }
+                                  disabled={!product._id}
+                                  title="Copy product ID"
+                                  aria-label={`Copy product ID for ${product.title}`}
+                                >
+                                  <Copy className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <span className="shrink-0">Category:</span>
+                                <span className="min-w-0 truncate text-foreground/80">
+                                  {resolveProductRefLabel(product.category)}
+                                </span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <span className="shrink-0">Sub category:</span>
+                                <span className="min-w-0 truncate text-foreground/80">
+                                  {product.subCategorySlug?.trim() || '-'}
+                                </span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <span className="shrink-0">Selling unit:</span>
+                                <span className="min-w-0 truncate text-foreground/80">
+                                  {isSellingUnit(product.sellingUnit)
+                                    ? product.sellingUnit
+                                    : DEFAULT_SELLING_UNIT}
+                                </span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <span className="shrink-0">Created at:</span>
+                                <span
+                                  className="cursor-help min-w-0 truncate text-foreground/80"
+                                  title={formatDashboardDate(
+                                    product.createdAt,
+                                    {
+                                      time: true,
+                                    },
+                                  )}
+                                >
+                                  {formatDashboardDate(product.createdAt)}
+                                </span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <span className="shrink-0">Updated at:</span>
+                                <span
+                                  className="cursor-help min-w-0 truncate text-foreground/80"
+                                  title={formatDashboardDate(
+                                    product.updatedAt,
+                                    {
+                                      time: true,
+                                    },
+                                  )}
+                                >
+                                  {formatDashboardDate(product.updatedAt)}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="min-w-0">
-                        {resolveProductRefLabel(product.brand)}
-                      </TableCell>
-                      <TableCell>{product.sku}</TableCell>
-                      <TableCell className="min-w-0">
-                        {product.badge ? (
-                          <Badge
-                            variant="outline"
-                            className="max-w-28 truncate"
-                          >
-                            {product.badge}
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary">None</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="min-w-0">
-                        <Badge
-                          variant={product.isActive ? 'default' : 'secondary'}
-                        >
-                          {product.isActive ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="min-w-0">
-                        <Badge variant="secondary">
-                          {formatStockLabel(product.stock)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="min-w-0">
-                        <Badge
-                          variant={product.isFeatured ? 'default' : 'secondary'}
-                        >
-                          {product.isFeatured ? 'Featured' : 'No'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="min-w-0">
-                        <Badge
-                          variant={
-                            product.isNoCOD ? 'destructive' : 'secondary'
-                          }
-                        >
-                          {product.isNoCOD ? 'Blocked' : 'Allowed'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="min-w-0">
-                        {typeof product.weightKg === 'number'
-                          ? `${product.weightKg.toFixed(2)} kg`
-                          : '-'}
-                      </TableCell>
-                      <TableCell className="min-w-0">
-                        {formatPriceLabelWithUnit(
-                          product.price,
-                          product.sellingUnit,
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          {isEditing ? (
-                            <>
-                              <Button
-                                size="sm"
-                                disabled={isPending || isEditingSaving}
-                                onClick={productEditForm.handleSubmit(
-                                  async values => {
-                                    setIsEditingSaving(true);
-                                    const result = await updateProduct(
-                                      product.slug,
-                                      {
-                                        title: values.title.trim(),
-                                        slug: values.slug.trim(),
-                                        sku: values.sku.trim(),
-                                        features: values.features ?? '',
-                                        description: values.description ?? '',
-                                        price: Number(values.price),
-                                        oldPrice: values.oldPrice?.trim()
-                                          ? Number(values.oldPrice)
-                                          : undefined,
-                                        badge:
-                                          values.badge?.trim() || undefined,
-                                        youtubeVideoUrl:
-                                          values.youtubeVideoUrl?.trim() ?? '',
-                                        brand: values.brand.trim(),
-                                        category: values.category.trim(),
-                                        subCategorySlug:
-                                          values.subCategorySlug?.trim() ?? '',
-                                        stock: values.stock.trim()
-                                          ? Number(values.stock)
-                                          : null,
-                                        rating: Number(values.rating),
-                                        weightKg: Number(values.weightKg),
-                                        sellingUnit: values.sellingUnit,
-                                        isFeatured: values.isFeatured,
-                                        isNoCOD: values.isNoCOD,
-                                        imageAlt: values.imageAlt?.trim() ? Array(getEditingImagePayload()?.length || 1).fill(values.imageAlt.trim()) : undefined,
-                                        isActive: values.isActive,
-                                        images: getEditingImagePayload(),
-                                      },
-                                    );
-                                    setIsEditingSaving(false);
-
-                                    if (!result?.success) {
-                                      return refresh(
-                                        result?.message ??
-                                          'Failed to update product.',
-                                        'error',
-                                      );
-                                    }
-
-                                    stopEditingProduct();
-                                    refresh(
-                                      result.message ??
-                                        'Product updated successfully.',
-                                      'success',
-                                    );
-                                  },
-                                )}
-                              >
-                                {isEditingSaving ? 'Saving...' : 'Save'}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={stopEditingProduct}
-                              >
-                                Cancel
-                              </Button>
-                            </>
+                        </TableCell>
+                        <TableCell className="min-w-0">
+                          {resolveProductRefLabel(product.brand)}
+                        </TableCell>
+                        <TableCell>{product.sku}</TableCell>
+                        <TableCell className="min-w-0">
+                          {product.badge ? (
+                            <Badge
+                              variant="outline"
+                              className="max-w-28 truncate"
+                            >
+                              {product.badge}
+                            </Badge>
                           ) : (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  startEditingProduct(product);
-                                }}
-                              >
-                                <Pencil className="size-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={isPending}
-                                onClick={() =>
-                                  setPendingDeleteProduct({
-                                    slug: product.slug,
-                                    title: product.title,
-                                  })
-                                }
-                              >
-                                <Trash2 className="size-4" />
-                              </Button>
-                            </>
+                            <Badge variant="secondary">None</Badge>
                           )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                    {isEditing ? (
-                      <TableRow key={`${product.sku}-edit`}>
-                        <TableCell colSpan={11} className="bg-muted/20">
-                          <div className="grid gap-6 rounded-xl border bg-background p-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-                            <ProductFormSections
-                              form={productEditForm}
-                              titleOnChange={handleEditingTitleChange}
-                              slugOnChange={value => {
-                                productEditForm.setValue(
-                                  'slug',
-                                  slugify(value),
-                                  {
-                                    shouldValidate: true,
-                                  },
-                                );
-                              }}
-                              categoryOnChange={handleEditingCategoryChange}
-                              categoryValue={editingCategory}
-                              subCategoryOptions={editingSubCategoryOptions}
-                              categories={categories}
-                              brandOptions={brandOptions}
-                              featuresValue={editingFeatures ?? ''}
-                              descriptionValue={editingDescription ?? ''}
-                            />
-                            <div className="justify-self-stretch xl:sticky xl:top-6">
-                              <div
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => {
-                                  editingProductImageInputRef.current?.click();
-                                }}
-                                onKeyDown={event => {
-                                  if (
-                                    event.key === 'Enter' ||
-                                    event.key === ' '
-                                  ) {
-                                    event.preventDefault();
-                                    editingProductImageInputRef.current?.click();
+                        </TableCell>
+                        <TableCell className="min-w-0">
+                          <Badge
+                            variant={product.isActive ? 'default' : 'secondary'}
+                          >
+                            {product.isActive ? 'Active' : 'Inactive'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="min-w-0">
+                          <Badge variant="secondary">
+                            {formatStockLabel(product.stock)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="min-w-0">
+                          <Badge
+                            variant={
+                              product.isFeatured ? 'default' : 'secondary'
+                            }
+                          >
+                            {product.isFeatured ? 'Featured' : 'No'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="min-w-0">
+                          <Badge
+                            variant={
+                              product.isNoCOD ? 'destructive' : 'secondary'
+                            }
+                          >
+                            {product.isNoCOD ? 'Blocked' : 'Allowed'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="min-w-0">
+                          {typeof product.weightKg === 'number'
+                            ? `${product.weightKg.toFixed(2)} kg`
+                            : '-'}
+                        </TableCell>
+                        <TableCell className="min-w-0">
+                          {formatPriceLabelWithUnit(
+                            product.price,
+                            product.sellingUnit,
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            {isEditing ? (
+                              <>
+                                <Button
+                                  size="sm"
+                                  disabled={isPending || isEditingSaving}
+                                  onClick={productEditForm.handleSubmit(
+                                    async values => {
+                                      setIsEditingSaving(true);
+                                      const result = await updateProduct(
+                                        product.slug,
+                                        {
+                                          title: values.title.trim(),
+                                          slug: values.slug.trim(),
+                                          sku: values.sku.trim(),
+                                          features: values.features ?? '',
+                                          description: values.description ?? '',
+                                          price: Number(values.price),
+                                          oldPrice: values.oldPrice?.trim()
+                                            ? Number(values.oldPrice)
+                                            : undefined,
+                                          badge:
+                                            values.badge?.trim() || undefined,
+                                          youtubeVideoUrl:
+                                            values.youtubeVideoUrl?.trim() ??
+                                            '',
+                                          brand: values.brand.trim(),
+                                          category: values.category.trim(),
+                                          subCategorySlug:
+                                            values.subCategorySlug?.trim() ??
+                                            '',
+                                          stock: values.stock.trim()
+                                            ? Number(values.stock)
+                                            : null,
+                                          rating: Number(values.rating),
+                                          weightKg: Number(values.weightKg),
+                                          sellingUnit: values.sellingUnit,
+                                          isFeatured: values.isFeatured,
+                                          isNoCOD: values.isNoCOD,
+                                          imageAlt: values.imageAlt?.trim()
+                                            ? Array(
+                                                getEditingImagePayload()
+                                                  ?.length || 1,
+                                              ).fill(values.imageAlt.trim())
+                                            : undefined,
+                                          metaTitle:
+                                            values.metaTitle?.trim() ||
+                                            undefined,
+                                          metaDescription:
+                                            values.metaDescription?.trim() ||
+                                            undefined,
+                                          isActive: values.isActive,
+                                          images: getEditingImagePayload(),
+                                        },
+                                      );
+                                      setIsEditingSaving(false);
+
+                                      if (!result?.success) {
+                                        return refresh(
+                                          result?.message ??
+                                            'Failed to update product.',
+                                          'error',
+                                        );
+                                      }
+
+                                      stopEditingProduct();
+                                      refresh(
+                                        result.message ??
+                                          'Product updated successfully.',
+                                        'success',
+                                      );
+                                    },
+                                  )}
+                                >
+                                  {isEditingSaving ? 'Saving...' : 'Save'}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={stopEditingProduct}
+                                >
+                                  Cancel
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    startEditingProduct(product);
+                                  }}
+                                >
+                                  <Pencil className="size-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={isPending}
+                                  onClick={() =>
+                                    setPendingDeleteProduct({
+                                      slug: product.slug,
+                                      title: product.title,
+                                    })
                                   }
+                                >
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      {isEditing ? (
+                        <TableRow key={`${product.sku}-edit`}>
+                          <TableCell colSpan={11} className="bg-muted/20">
+                            <div className="grid gap-6 rounded-xl border bg-background p-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+                              <ProductFormSections
+                                form={productEditForm}
+                                titleOnChange={handleEditingTitleChange}
+                                slugOnChange={value => {
+                                  productEditForm.setValue(
+                                    'slug',
+                                    slugify(value),
+                                    {
+                                      shouldValidate: true,
+                                    },
+                                  );
                                 }}
-                                onDragOver={event => event.preventDefault()}
-                                onDrop={handleEditingProductImageDrop}
-                                className="rounded-2xl border-2 border-dashed border-border/70 bg-background/80 p-3 transition hover:border-primary/40"
-                              >
-                                <div className="flex flex-col gap-3">
-                                  <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                                    <UploadCloud className="size-5" />
-                                  </div>
-                                  <div className="min-w-0 flex-1">
-                                    <div className="text-xs font-medium text-muted-foreground">
-                                      Product images
+                                categoryOnChange={handleEditingCategoryChange}
+                                categoryValue={editingCategory}
+                                subCategoryOptions={editingSubCategoryOptions}
+                                categories={categories}
+                                brandOptions={brandOptions}
+                                featuresValue={editingFeatures ?? ''}
+                                descriptionValue={editingDescription ?? ''}
+                              />
+                              <div className="justify-self-stretch xl:sticky xl:top-6">
+                                <div
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={() => {
+                                    editingProductImageInputRef.current?.click();
+                                  }}
+                                  onKeyDown={event => {
+                                    if (
+                                      event.key === 'Enter' ||
+                                      event.key === ' '
+                                    ) {
+                                      event.preventDefault();
+                                      editingProductImageInputRef.current?.click();
+                                    }
+                                  }}
+                                  onDragOver={event => event.preventDefault()}
+                                  onDrop={handleEditingProductImageDrop}
+                                  className="rounded-2xl border-2 border-dashed border-border/70 bg-background/80 p-3 transition hover:border-primary/40"
+                                >
+                                  <div className="flex flex-col gap-3">
+                                    <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                      <UploadCloud className="size-5" />
                                     </div>
-                                    <p className="text-xs text-muted-foreground">
-                                      Click or drop to add more images.
-                                    </p>
-                                    <div className="mt-2 grid grid-cols-2 gap-2">
-                                      {editingProductImagePreviews.length >
-                                      0 ? (
-                                        <div className="col-span-2">
-                                          <div className="relative h-34">
-                                            {editingProductImagePreviews.map(
-                                              (preview, index) => {
-                                                const total =
-                                                  editingProductImagePreviews.length;
-                                                const reversedIndex =
-                                                  total - index - 1;
-                                                const isHovered =
-                                                  hoveredEditingProductImagePreview ===
-                                                  preview;
+                                    <div className="min-w-0 flex-1">
+                                      <div className="text-xs font-medium text-muted-foreground">
+                                        Product images
+                                      </div>
+                                      <p className="text-xs text-muted-foreground">
+                                        Click or drop to add more images.
+                                      </p>
+                                      <div className="mt-2 grid grid-cols-2 gap-2">
+                                        {editingProductImagePreviews.length >
+                                        0 ? (
+                                          <div className="col-span-2">
+                                            <div className="relative h-34">
+                                              {editingProductImagePreviews.map(
+                                                (preview, index) => {
+                                                  const total =
+                                                    editingProductImagePreviews.length;
+                                                  const reversedIndex =
+                                                    total - index - 1;
+                                                  const isHovered =
+                                                    hoveredEditingProductImagePreview ===
+                                                    preview;
 
-                                                return (
-                                                  <button
-                                                    key={preview}
-                                                    type="button"
-                                                    onMouseEnter={() =>
-                                                      setHoveredEditingProductImagePreview(
-                                                        preview,
-                                                      )
-                                                    }
-                                                    onFocus={() =>
-                                                      setHoveredEditingProductImagePreview(
-                                                        preview,
-                                                      )
-                                                    }
-                                                    className="absolute left-1/2 top-3 size-24 overflow-hidden rounded-lg border bg-muted shadow-sm transition duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
-                                                    style={{
-                                                      transform: `translateX(calc(-50% + ${
-                                                        (reversedIndex -
-                                                          (total - 1) / 2) *
-                                                        34
-                                                      }px)) scale(${isHovered ? 1.15 : 1}) rotate(${
-                                                        imagePreviewRotations[
-                                                          index %
-                                                            imagePreviewRotations.length
-                                                        ]
-                                                      })`,
-                                                      zIndex: isHovered
-                                                        ? 999
-                                                        : total - index,
-                                                    }}
-                                                  >
-                                                    <Image
-                                                      height={240}
-                                                      width={240}
-                                                      src={preview}
-                                                      alt={`Editing product preview ${index + 1}`}
-                                                      className="h-full w-full object-cover"
-                                                    />
-
-                                                    <span
-                                                      role="button"
-                                                      tabIndex={0}
-                                                      onClick={event => {
-                                                        event.stopPropagation();
-                                                        removeEditingProductImage(
-                                                          index,
-                                                        );
+                                                  return (
+                                                    <button
+                                                      key={preview}
+                                                      type="button"
+                                                      onMouseEnter={() =>
+                                                        setHoveredEditingProductImagePreview(
+                                                          preview,
+                                                        )
+                                                      }
+                                                      onFocus={() =>
+                                                        setHoveredEditingProductImagePreview(
+                                                          preview,
+                                                        )
+                                                      }
+                                                      className="absolute left-1/2 top-3 size-24 overflow-hidden rounded-lg border bg-muted shadow-sm transition duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                                                      style={{
+                                                        transform: `translateX(calc(-50% + ${
+                                                          (reversedIndex -
+                                                            (total - 1) / 2) *
+                                                          34
+                                                        }px)) scale(${isHovered ? 1.15 : 1}) rotate(${
+                                                          imagePreviewRotations[
+                                                            index %
+                                                              imagePreviewRotations.length
+                                                          ]
+                                                        })`,
+                                                        zIndex: isHovered
+                                                          ? 999
+                                                          : total - index,
                                                       }}
-                                                      onKeyDown={event => {
-                                                        if (
-                                                          event.key ===
-                                                            'Enter' ||
-                                                          event.key === ' '
-                                                        ) {
-                                                          event.preventDefault();
+                                                    >
+                                                      <Image
+                                                        height={240}
+                                                        width={240}
+                                                        src={preview}
+                                                        alt={`Editing product preview ${index + 1}`}
+                                                        className="h-full w-full object-cover"
+                                                      />
+
+                                                      <span
+                                                        role="button"
+                                                        tabIndex={0}
+                                                        onClick={event => {
                                                           event.stopPropagation();
                                                           removeEditingProductImage(
                                                             index,
                                                           );
-                                                        }
-                                                      }}
-                                                      className="absolute right-1 top-1 z-1000 flex size-6 items-center justify-center rounded-full bg-background/95 text-destructive shadow"
-                                                    >
-                                                      <X className="size-3.5" />
-                                                    </span>
-                                                  </button>
-                                                );
-                                              },
-                                            )}
+                                                        }}
+                                                        onKeyDown={event => {
+                                                          if (
+                                                            event.key ===
+                                                              'Enter' ||
+                                                            event.key === ' '
+                                                          ) {
+                                                            event.preventDefault();
+                                                            event.stopPropagation();
+                                                            removeEditingProductImage(
+                                                              index,
+                                                            );
+                                                          }
+                                                        }}
+                                                        className="absolute right-1 top-1 z-1000 flex size-6 items-center justify-center rounded-full bg-background/95 text-destructive shadow"
+                                                      >
+                                                        <X className="size-3.5" />
+                                                      </span>
+                                                    </button>
+                                                  );
+                                                },
+                                              )}
+                                            </div>
+                                            <div className="relative mt-2 aspect-square overflow-hidden rounded-xl border bg-muted z-10">
+                                              <Image
+                                                key={
+                                                  hoveredEditingProductImagePreview ||
+                                                  editingProductImagePreviews[0]
+                                                }
+                                                height={420}
+                                                width={420}
+                                                src={
+                                                  hoveredEditingProductImagePreview ||
+                                                  editingProductImagePreviews[0]
+                                                }
+                                                alt="Selected editing product preview"
+                                                className="h-full w-full object-contain p-2"
+                                              />
+                                            </div>
                                           </div>
-                                          <div className="relative mt-2 aspect-square overflow-hidden rounded-xl border bg-muted z-10">
-                                            <Image
-                                              key={hoveredEditingProductImagePreview || editingProductImagePreviews[0]}
-                                              height={420}
-                                              width={420}
-                                              src={
-                                                hoveredEditingProductImagePreview ||
-                                                editingProductImagePreviews[0]
-                                              }
-                                              alt="Selected editing product preview"
-                                              className="h-full w-full object-contain p-2"
-                                            />
+                                        ) : (
+                                          <div className="col-span-2 flex aspect-square items-center justify-center gap-2 rounded-xl border bg-muted text-sm text-muted-foreground">
+                                            <ImagePlus className="size-4" />
+                                            Previews will appear here
                                           </div>
-                                        </div>
-                                      ) : (
-                                        <div className="col-span-2 flex aspect-square items-center justify-center gap-2 rounded-xl border bg-muted text-sm text-muted-foreground">
-                                          <ImagePlus className="size-4" />
-                                          Previews will appear here
-                                        </div>
-                                      )}
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
+                                <input
+                                  ref={editingProductImageInputRef}
+                                  type="file"
+                                  accept="image/*"
+                                  multiple
+                                  className="sr-only"
+                                  onChange={event => {
+                                    appendEditingProductImages(
+                                      event.target.files || [],
+                                    );
+                                    event.currentTarget.value = '';
+                                  }}
+                                />
                               </div>
-                              <input
-                                ref={editingProductImageInputRef}
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                className="sr-only"
-                                onChange={event => {
-                                  appendEditingProductImages(
-                                    event.target.files || [],
-                                  );
-                                  event.currentTarget.value = '';
-                                }}
-                              />
                             </div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ) : null}
-                  </Fragment>
-                );
-              })}
-            </TableBody>
-          </Table>
-          {paginationMeta.total > 0 && (
-            <div className="mt-4 border-t pt-4">
-              <TablePagination
-                page={paginationMeta.page}
-                limit={paginationMeta.limit}
-                total={paginationMeta.total}
-                onPageChange={nextPage =>
-                  updateProductQuery({ page: nextPage })
-                }
-                onLimitChange={l => {
-                  updateProductQuery({ page: 1, limit: l });
-                }}
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </ScrollArea>
-    <div className='mt-10 block'></div>
+                          </TableCell>
+                        </TableRow>
+                      ) : null}
+                    </Fragment>
+                  );
+                })}
+              </TableBody>
+            </Table>
+            {paginationMeta.total > 0 && (
+              <div className="mt-4 border-t pt-4">
+                <TablePagination
+                  page={paginationMeta.page}
+                  limit={paginationMeta.limit}
+                  total={paginationMeta.total}
+                  onPageChange={nextPage =>
+                    updateProductQuery({ page: nextPage })
+                  }
+                  onLimitChange={l => {
+                    updateProductQuery({ page: 1, limit: l });
+                  }}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </ScrollArea>
+      <div className="mt-10 block"></div>
 
       <DeleteConfirmationDialog
         open={Boolean(pendingDeleteProduct)}

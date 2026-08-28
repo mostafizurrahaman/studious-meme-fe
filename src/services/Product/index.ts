@@ -376,6 +376,8 @@ type ProductMutationPayload = {
   isFeatured?: boolean;
   isNoCOD?: boolean;
   isActive?: boolean;
+  metaTitle?: string;
+  metaDescription?: string;
 };
 
 function toFormData(payload: Record<string, unknown>) {
