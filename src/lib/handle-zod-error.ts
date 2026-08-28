@@ -28,9 +28,14 @@ export const getFirstErrorMessage = (
     if (!error) continue;
 
     if (isFieldError(error)) {
-      if (typeof error.message === 'string' && error.message) {
+      if (typeof error.message === 'string' && error.message.trim() !== '') {
         return error.message;
       }
+      // If it's a FieldError but has no specific message, try to return a generic one based on type
+      if (error.type === 'required') {
+        return `${key} is required.`;
+      }
+      return `Invalid input for ${key}.`;
     } else {
       // যদি এটি নেস্টেড অবজেক্ট বা অ্যারে হয়, তবে রিকার্সিভলি সার্চ করা হবে
       const nestedMessage = getFirstErrorMessage(error as FieldErrors);
@@ -44,7 +49,15 @@ export const getFirstErrorMessage = (
 };
 
 export const handleFormError = (errors: FieldErrors<FieldValues>) => {
-  console.error('Form Validation Errors:', errors);
+  // Safely log the errors avoiding circular references (like DOM nodes in refs)
+  try {
+    console.error('Form Validation Errors:', JSON.stringify(errors, (key, value) => {
+      if (key === 'ref' && value && typeof value === 'object') return '[DOM Node]';
+      return value;
+    }, 2));
+  } catch (e) {
+    console.error('Form Validation Errors:', errors);
+  }
 
   const errorMessage = getFirstErrorMessage(errors);
   toast.error(errorMessage || 'Please fill out all required fields correctly.');

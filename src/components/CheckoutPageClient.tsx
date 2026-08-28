@@ -4,11 +4,19 @@ import { useActionState, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { formatMoney } from '@/lib/cart';
 import { useCartStore } from '@/lib/cart-store';
 import {
@@ -29,6 +37,8 @@ import {
   formatShippingZoneLabel,
 } from '@/lib/fulfillment';
 import { getMyCart } from '@/services/Cart';
+import { getMyAddresses, Address } from '@/services/Address';
+import { AddressFormModal } from '@/components/dashboard/AddressFormModal';
 import { trackPurchase } from '@/lib/facebook-pixel';
 
 const CHECKOUT_LOGIN_MESSAGE = 'Sign in to place your order.';
@@ -127,6 +137,9 @@ export function CheckoutPageClient() {
   const total = fulfillment.total;
   const summaryItems = items.slice(0, 4);
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>();
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const nameError = getCheckoutFieldError('name', checkout, submitAttempted);
   const phoneError = getCheckoutFieldError('phone', checkout, submitAttempted);
   const emailError = getCheckoutFieldError('email', checkout, submitAttempted);
@@ -173,6 +186,38 @@ export function CheckoutPageClient() {
       active = false;
     };
   }, [replaceItems]);
+
+  useEffect(() => {
+    let active = true;
+
+    getMyAddresses()
+      .then((result) => {
+        if (!active || !result.success || !Array.isArray(result.data)) return;
+        setAddresses(result.data);
+
+        // Auto-fill from default address if checkout is empty
+        const defaultAddr = result.data.find(a => a.isDefault);
+        if (defaultAddr && !useCartStore.getState().checkout.name) {
+          updateCheckout('name', defaultAddr.fullName);
+          updateCheckout('phone', defaultAddr.phoneNumber);
+          updateCheckout('email', defaultAddr.email);
+          updateCheckout('city', defaultAddr.district);
+          updateCheckout('address', defaultAddr.deliveryAddress);
+          setSelectedAddressId(defaultAddr._id);
+        } else if (defaultAddr) {
+          // If already filled, let's see if it matches the default address
+          const currentCheckout = useCartStore.getState().checkout;
+          if (currentCheckout.name === defaultAddr.fullName && currentCheckout.phone === defaultAddr.phoneNumber) {
+            setSelectedAddressId(defaultAddr._id);
+          }
+        }
+      })
+      .catch(() => null);
+
+    return () => {
+      active = false;
+    };
+  }, [updateCheckout]);
 
   useEffect(() => {
     if (!result.ok) {
@@ -268,6 +313,72 @@ export function CheckoutPageClient() {
                 </div>
               ) : null}
 
+              {addresses.length > 0 && (
+                <div className="mb-4 flex items-end gap-3">
+                  <label className="grid gap-2 text-sm font-semibold text-foreground flex-1">
+                    Autofill from saved address
+                    <Select
+                      value={selectedAddressId}
+                      onValueChange={(value) => {
+                        const addr = addresses.find(a => a._id === value);
+                        if (addr) {
+                          updateCheckout('name', addr.fullName);
+                          updateCheckout('phone', addr.phoneNumber);
+                          updateCheckout('email', addr.email);
+                          updateCheckout('city', addr.district);
+                          updateCheckout('address', addr.deliveryAddress);
+                          setSelectedAddressId(value);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-full h-auto min-h-[3.5rem] text-left px-4 py-3 bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors cursor-pointer rounded-xl">
+                        <SelectValue placeholder="Select an address to autofill" />
+                      </SelectTrigger>
+                      <SelectContent position="popper" sideOffset={4} className="rounded-xl">
+                        {addresses.map((addr) => (
+                          <SelectItem key={addr._id} value={addr._id} className="cursor-pointer py-3 px-4">
+                            <div className="flex flex-col gap-1.5">
+                              <span className="font-semibold flex items-center gap-2 text-sm text-foreground">
+                                {addr.type.charAt(0).toUpperCase() + addr.type.slice(1)}
+                                {addr.isDefault && (
+                                  <span className="text-[10px] bg-green-500/15 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-md font-bold tracking-wide">
+                                    ✓ Default
+                                  </span>
+                                )}
+                              </span>
+                              <span className="text-muted-foreground text-xs line-clamp-1">
+                                {addr.deliveryAddress}, {addr.district}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </label>
+                  <Button type="button" variant="outline" className="h-[3.5rem] px-4 rounded-xl cursor-pointer shrink-0" onClick={() => setIsAddressModalOpen(true)}>
+                    <Plus size={16} className="mr-2 hidden sm:inline-block" /> Add New
+                  </Button>
+                  {selectedAddressId && (
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      className="h-[3.5rem] px-4 rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer shrink-0" 
+                      onClick={() => setSelectedAddressId(undefined)}
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {addresses.length === 0 && (
+                <div className="mb-4">
+                  <Button type="button" variant="outline" className="w-full border-dashed h-12 cursor-pointer text-muted-foreground hover:text-primary hover:border-primary/50" onClick={() => setIsAddressModalOpen(true)}>
+                    <Plus size={16} className="mr-2" /> Add a Delivery Address
+                  </Button>
+                </div>
+              )}
+
               <div className="grid gap-4 md:grid-cols-2">
                 {[
                   ['name', 'Full name', checkout.name],
@@ -283,6 +394,7 @@ export function CheckoutPageClient() {
                       className="text-gray-500"
                       name={key}
                       value={value}
+                      disabled={!!selectedAddressId}
                       aria-invalid={Boolean(
                         key === 'name'
                           ? nameError
@@ -318,24 +430,22 @@ export function CheckoutPageClient() {
                 ))}
                 <label className="grid gap-2 text-sm font-semibold text-foreground md:col-span-2">
                   District
-                  <select
-                    name="city"
+                  <Select
                     value={checkout.city}
-                    aria-invalid={Boolean(cityError)}
-                    onChange={(event) =>
-                      updateCheckout('city', event.target.value)
-                    }
-                    className={`h-11 rounded-2xl border bg-background px-4 outline-none text-gray-500 ${cityError ? 'border-destructive/50 ring-2 ring-destructive/15' : 'border-input'}`}
+                    onValueChange={(value) => updateCheckout('city', value)}
+                    disabled={!!selectedAddressId}
                   >
-                    <option value="" disabled>
-                      Select district
-                    </option>
-                    {BANGLADESH_DISTRICTS.map((district) => (
-                      <option key={district} value={district}>
-                        {district}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger 
+                      className={`w-full h-11 text-sm bg-background ${cityError ? 'border-destructive/50 ring-2 ring-destructive/15' : 'border-input'}`}
+                    >
+                      <SelectValue placeholder="Select district" />
+                    </SelectTrigger>
+                    <SelectContent position="popper" sideOffset={4}>
+                      {BANGLADESH_DISTRICTS.map((district) => (
+                        <SelectItem key={district} value={district}>{district}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FieldError message={cityError} />
                 </label>
               </div>
@@ -357,6 +467,7 @@ export function CheckoutPageClient() {
                   name="address"
                   value={checkout.address}
                   aria-invalid={Boolean(addressError)}
+                  disabled={!!selectedAddressId}
                   onChange={(event) =>
                     updateCheckout('address', event.target.value)
                   }
@@ -508,6 +619,33 @@ export function CheckoutPageClient() {
           </Card>
         </section>
       </div>
+
+      <AddressFormModal 
+        isOpen={isAddressModalOpen}
+        onClose={() => setIsAddressModalOpen(false)}
+        onSuccess={(newAddress, isEditing, wasDefault) => {
+          let updatedAddresses = addresses;
+          if (isEditing) {
+            updatedAddresses = addresses.map((addr) => (addr._id === newAddress._id ? newAddress : addr));
+          } else {
+            updatedAddresses = [newAddress, ...addresses];
+          }
+
+          if (wasDefault) {
+            updatedAddresses = updatedAddresses.map(a => ({ ...a, isDefault: a._id === newAddress._id }));
+          }
+          
+          setAddresses(updatedAddresses);
+          
+          // Auto-select the newly added/edited address
+          updateCheckout('name', newAddress.fullName);
+          updateCheckout('phone', newAddress.phoneNumber);
+          updateCheckout('email', newAddress.email);
+          updateCheckout('city', newAddress.district);
+          updateCheckout('address', newAddress.deliveryAddress);
+          setSelectedAddressId(newAddress._id);
+        }}
+      />
     </main>
   );
 }

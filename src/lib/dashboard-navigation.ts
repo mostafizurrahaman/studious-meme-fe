@@ -45,6 +45,11 @@ function getUserNavigationItems(role: AuthRole): DashboardNavigationItem[] {
       href: `${getDashboardPathByRole(role) ?? '/dashboard/user'}/payments`,
       description: 'Review payments',
     },
+    {
+      label: 'Address',
+      href: `${getDashboardPathByRole(role) ?? '/dashboard/user'}/address`,
+      description: 'Manage your addresses',
+    },
     getCommonNavigationItems(role)[1],
   ];
 }
