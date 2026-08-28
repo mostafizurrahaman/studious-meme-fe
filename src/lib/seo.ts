@@ -355,6 +355,8 @@ export function buildProductMetadata(product: {
   images: string[];
   features?: string;
   description?: string;
+  metaTitle?: string;
+  metaDescription?: string;
 }) {
   const image = absoluteUrl(getProductPrimaryImage(product));
 
@@ -362,15 +364,16 @@ export function buildProductMetadata(product: {
     Boolean,
   );
 
-  const fullDescription = descriptionParts.join(' ').slice(0, 160); // SEO friendly
+  const fullDescription = product.metaDescription ?? descriptionParts.join(' ').slice(0, 160); // SEO friendly
+  const title = product.metaTitle ?? `${product.title}`;
 
   return {
-    title: `${product.title}`,
+    title,
 
     description: fullDescription,
 
     openGraph: {
-      title: product.title,
+      title,
       description: fullDescription,
       url: `${siteConfig.url}/product/${product.slug}`,
       images: [{ url: image }],
@@ -379,7 +382,7 @@ export function buildProductMetadata(product: {
 
     twitter: {
       card: 'summary_large_image',
-      title: product.title,
+      title,
       description: fullDescription,
       images: [image],
     },
