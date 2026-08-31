@@ -121,6 +121,8 @@ export function CheckoutPageClient() {
     error: '',
   });
 
+  console.log(result)
+
   const fulfillment = calculateFulfillmentSummary({
     items,
     city: checkout.city,
@@ -301,7 +303,16 @@ export function CheckoutPageClient() {
           <Card className="p-6 shadow-sm">
             <form
               className="grid gap-4"
-              action={formAction}
+              action={(formData) => {
+                if (selectedAddressId) {
+                  formData.set('name', checkout.name);
+                  formData.set('phone', checkout.phone);
+                  formData.set('email', checkout.email);
+                  formData.set('city', checkout.city);
+                  formData.set('address', checkout.address);
+                }
+                formAction(formData);
+              }}
               noValidate
               onSubmit={() => setSubmitAttempted(true)}
             >
@@ -460,6 +471,7 @@ export function CheckoutPageClient() {
                 name="couponCode"
                 value={appliedCoupon?.code ?? ''}
               />
+
 
               <label className="grid gap-2 text-sm font-semibold text-foreground">
                 Delivery address
