@@ -19,6 +19,10 @@ export default function robots(): MetadataRoute.Robots {
           '/api',
         ],
       },
+      {
+        userAgent: 'Google-Extended',
+        allow: '/',
+      },
     ],
     sitemap: absoluteUrl('/sitemap.xml'),
   };

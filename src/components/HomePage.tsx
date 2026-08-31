@@ -15,7 +15,11 @@ import {
 import { ProductCard } from '@/components/ProductCard';
 import { SectionHeading } from '@/components/SectionHeading';
 import { HomeHeroCarousel } from '@/components/HomeHeroCarousel';
-import { HomeAboutSection } from '@/components/HomeAboutSection';
+import dynamic from 'next/dynamic';
+
+const HomeAboutSection = dynamic(
+  () => import('@/components/HomeAboutSection').then((mod) => mod.HomeAboutSection)
+);
 import {
   mapBackendBrandToStorefrontBrand,
   type BackendBrand,
