@@ -28,8 +28,3 @@ const eslintConfig = defineConfig([
 ]);
 
 export default eslintConfig;
-
-// unused import auto remove command: pnpm eslint --ext .js,.ts,.jsx,.tsx . --fix OR pnpm eslint . --fix
-// format all file using prettier: pnpm format
-// all package latest install: pnpm add -D @eslint/js@latest eslint@latest globals@latest typescript-eslint@latest
-// to check unused packages: npx depcheck OR npx knip OR npx npm-check
