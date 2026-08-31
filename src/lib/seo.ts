@@ -83,7 +83,19 @@ export const siteFullDescription = siteAboutSections
   .join('\n\n');
 
 export function absoluteUrl(path: string) {
-  return new URL(path, siteConfig.url).toString();
+  const url = new URL(path, siteConfig.url).toString();
+  
+  // Don't append trailing slash to file extensions or non-site domains
+  if (url.includes('.') && !url.includes(siteConfig.url.replace('https://', ''))) {
+    return url;
+  }
+  
+  // Avoid appending trailing slashes to image/file paths
+  if (url.match(/\.(png|jpe?g|webp|svg|xml|txt|ico|json)$/i)) {
+    return url;
+  }
+
+  return url.endsWith('/') ? url : `${url}/`;
 }
 
 export function serializeJsonLd(data: unknown) {

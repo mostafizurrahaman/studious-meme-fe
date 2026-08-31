@@ -2,8 +2,15 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ProductCard } from '@/components/ProductCard';
 import { ProductDetailClient } from '@/components/product/ProductDetailClient';
-import { ProductReviewsSection } from '@/components/product/ProductReviewsSection';
-import { ProductQuestionsSection } from '@/components/product/ProductQuestionsSection';
+import dynamic from 'next/dynamic';
+
+const ProductReviewsSection = dynamic(
+  () => import('@/components/product/ProductReviewsSection').then(mod => mod.ProductReviewsSection)
+);
+
+const ProductQuestionsSection = dynamic(
+  () => import('@/components/product/ProductQuestionsSection').then(mod => mod.ProductQuestionsSection)
+);
 import { SeoScripts } from '@/components/SeoScripts';
 import { buildProductMetadata, buildProductSchemas } from '@/lib/seo';
 import {
