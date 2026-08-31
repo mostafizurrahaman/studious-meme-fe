@@ -62,7 +62,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   devIndicators: false,
   poweredByHeader: false,
-  trailingSlash: true,
+  trailingSlash: false,
 
   /**
    * Next.js 16+
