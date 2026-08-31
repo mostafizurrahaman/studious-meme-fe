@@ -95,7 +95,12 @@ export function absoluteUrl(path: string) {
     return url;
   }
 
-  return url.endsWith('/') ? url : `${url}/`;
+  // Remove trailing slash if it exists, unless it's the root domain
+  if (url.endsWith('/') && url !== `${siteConfig.url}/`) {
+    return url.slice(0, -1);
+  }
+
+  return url;
 }
 
 export function serializeJsonLd(data: unknown) {
