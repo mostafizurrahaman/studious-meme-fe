@@ -80,8 +80,13 @@ function PriceRangeSlider({
     maxValue,
     Number(parsed.max || String(maxValue)) || maxValue,
   );
-  const [minPrice, setMinPrice] = useState(Math.min(initialMin, initialMax));
-  const [maxPrice, setMaxPrice] = useState(Math.max(initialMin, initialMax));
+  const step = 500;
+  const clampedMin = Math.min(initialMin, initialMax);
+  const clampedMax = Math.max(initialMin, initialMax);
+  const [minPrice, setMinPrice] = useState(clampedMin);
+  const [maxPrice, setMaxPrice] = useState(
+    clampedMax > clampedMin ? clampedMax : Math.min(clampedMin + step, maxValue),
+  );
   const range = Math.max(maxValue, 1);
   const minPercent = (minPrice / range) * 100;
   const maxPercent = (maxPrice / range) * 100;
@@ -115,11 +120,11 @@ function PriceRangeSlider({
           type="range"
           min={0}
           max={maxValue}
-          step={500}
+          step={step}
           value={minPrice}
           onChange={(event) => {
-            const nextMin = Math.min(Number(event.target.value), maxPrice);
-            setMinPrice(nextMin);
+            const nextMin = Math.min(Number(event.target.value), maxPrice - step);
+            setMinPrice(Math.max(0, nextMin));
           }}
           onMouseUp={() => commit(minPrice, maxPrice)}
           onTouchEnd={() => commit(minPrice, maxPrice)}
@@ -130,15 +135,15 @@ function PriceRangeSlider({
           type="range"
           min={0}
           max={maxValue}
-          step={500}
+          step={step}
           value={maxPrice}
           onChange={(event) => {
-            const nextMax = Math.max(Number(event.target.value), minPrice);
-            setMaxPrice(nextMax);
+            const nextMax = Math.max(Number(event.target.value), minPrice + step);
+            setMaxPrice(Math.min(maxValue, nextMax));
           }}
           onMouseUp={() => commit(minPrice, maxPrice)}
           onTouchEnd={() => commit(minPrice, maxPrice)}
-          className="pointer-events-none absolute inset-0 z-30 h-10 w-full appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:bg-background [&::-webkit-slider-thumb]:shadow-sm"
+          className="pointer-events-none absolute inset-0 z-20 h-10 w-full appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:bg-background [&::-webkit-slider-thumb]:shadow-sm"
           aria-label="Maximum price"
         />
       </div>
@@ -296,7 +301,7 @@ export function ShopPageClient({ products, categories, meta }: Props) {
                 </button>
               ))}
             </div>
-            <div key={filters.price} className="mt-3">
+            <div key={`${filters.price}-${sliderMax}`} className="mt-3">
               <PriceRangeSlider
                 initialValue={filters.price}
                 maxValue={sliderMax}

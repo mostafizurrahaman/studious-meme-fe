@@ -1,0 +1,21 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "backup_before_move_sub_category",
+    "dev-fahim",
+    "dev-mostafiz",
+    "main"
+  ],
+  "parent": {
+    "backup_before_move_sub_category": "main",
+    "dev-fahim": "main",
+    "dev-mostafiz": "main",
+    "main": null
+  },
+  "order": [
+    "main",
+    "backup_before_move_sub_category",
+    "dev-fahim",
+    "dev-mostafiz"
+  ]
+}
