@@ -48,6 +48,7 @@ import {
   deleteProduct,
   type BackendProduct,
   updateProduct,
+  getAdminProductDetails,
 } from '@/services/Product';
 import { formatDashboardDate } from '@/lib/formatDate';
 import { slugify } from '@/lib/slug';
@@ -1064,45 +1065,64 @@ export function DashboardProductsManager({
     appendEditingProductImages(event.dataTransfer.files);
   }
 
-  function startEditingProduct(product: BackendProduct) {
-    setEditingSlug(product.slug);
-    const brandId =
-      typeof product.brand === 'string'
-        ? product.brand
-        : (product.brand?._id ?? '');
-    const categoryId =
-      typeof product.category === 'string'
-        ? product.category
-        : (product.category?._id ?? '');
-    productEditForm.reset({
-      title: product.title,
-      slug: product.slug,
-      sku: product.sku,
-      features: product.features ?? '',
-      description: product.description ?? '',
-      price: String(product.price),
-      oldPrice: product.oldPrice === undefined ? '' : String(product.oldPrice),
-      badge: product.badge ?? '',
-      youtubeVideoUrl: product.youtubeVideoUrl ?? '',
-      brand: brandId,
-      category: categoryId,
-      subCategorySlug: product.subCategorySlug ?? '',
-      stock: product.stock == null ? '' : String(product.stock),
-      rating: String(product.rating),
-      weightKg: product.weightKg == null ? '' : String(product.weightKg),
-      sellingUnit: isSellingUnit(product.sellingUnit)
-        ? product.sellingUnit
-        : DEFAULT_SELLING_UNIT,
-      isFeatured: product.isFeatured,
-      isNoCOD: product.isNoCOD,
-      metaDescription: product.metaTitle,
-      metaTitle: product.metaTitle,
-      imageAlt: product?.imageAlt?.[0] || '',
-      isActive: product.isActive,
-    });
-    setEditingProductImageFiles([]);
-    setEditingProductImagePreviews(product.images ?? []);
-    setHoveredEditingProductImagePreview('');
+  async function startEditingProduct(shallowProduct: BackendProduct) {
+    if (isPending) return;
+
+    try {
+      if (!shallowProduct._id) {
+        toast.error('Product ID is missing.');
+        return;
+      }
+      const response = await getAdminProductDetails(shallowProduct._id);
+      if (!response.success || !response.data) {
+        toast.error('Failed to load product details.');
+        return;
+      }
+
+      const product = response.data;
+      setEditingSlug(product.slug);
+      
+      const brandId =
+        typeof product.brand === 'string'
+          ? product.brand
+          : (product.brand?._id ?? '');
+      const categoryId =
+        typeof product.category === 'string'
+          ? product.category
+          : (product.category?._id ?? '');
+          
+      productEditForm.reset({
+        title: product.title,
+        slug: product.slug,
+        sku: product.sku,
+        features: product.features ?? '',
+        description: product.description ?? '',
+        price: String(product.price),
+        oldPrice: product.oldPrice === undefined ? '' : String(product.oldPrice),
+        badge: product.badge ?? '',
+        youtubeVideoUrl: product.youtubeVideoUrl ?? '',
+        brand: brandId,
+        category: categoryId,
+        subCategorySlug: product.subCategorySlug ?? '',
+        stock: product.stock == null ? '' : String(product.stock),
+        rating: String(product.rating),
+        weightKg: product.weightKg == null ? '' : String(product.weightKg),
+        sellingUnit: isSellingUnit(product.sellingUnit)
+          ? product.sellingUnit
+          : DEFAULT_SELLING_UNIT,
+        isFeatured: product.isFeatured,
+        isNoCOD: product.isNoCOD,
+        metaDescription: product.metaDescription ?? '',
+        metaTitle: product.metaTitle ?? '',
+        imageAlt: product?.imageAlt?.[0] || '',
+        isActive: product.isActive,
+      });
+      setEditingProductImageFiles([]);
+      setEditingProductImagePreviews(product.images ?? []);
+      setHoveredEditingProductImagePreview('');
+    } catch (err) {
+      toast.error('Could not load product details.');
+    }
   }
 
   function stopEditingProduct() {

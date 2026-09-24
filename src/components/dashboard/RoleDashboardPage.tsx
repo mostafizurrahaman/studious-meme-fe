@@ -18,12 +18,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { AuthRole } from '@/types';
-import { getAllAdmins, getAllUsers } from '@/services/Admin';
-import { getAllBrands } from '@/services/Brand';
-import { getAllCategories } from '@/services/Category';
-import { getAllOrdersForAdmin, getMyOrders } from '@/services/Order';
-import { getAllPaymentsForAdmin, getMyPayments } from '@/services/Payment';
-import { getAllProducts } from '@/services/Product';
+import { getDashboardOverview } from '@/services/Dashboard';
 // import { getAllCoupons } from '@/services/Coupon/admin';
 
 import { getDashboardPathByRole } from '@/lib/auth/roles';
@@ -35,33 +30,7 @@ type Metric = {
   description: string;
 };
 
-function countItems(
-  result:
-    | {
-        data?: unknown;
-        meta?: { total?: number };
-        summary?: { total?: number };
-      }
-    | null
-    | undefined,
-): number {
-  if (!result) return 0;
 
-  if (typeof result.meta?.total === 'number') return result.meta.total;
-  if (typeof result.summary?.total === 'number') return result.summary.total;
-
-  const payload = result.data;
-
-  if (Array.isArray(payload)) return payload.length;
-
-  if (payload && typeof payload === 'object') {
-    const nested = payload as { data?: unknown; meta?: { total?: unknown } };
-
-    if (typeof nested.meta?.total === 'number') return nested.meta.total;
-    if (Array.isArray(nested.data)) return nested.data.length;
-  }
-  return 0;
-}
 
 function safeNumber(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
@@ -74,7 +43,7 @@ function formatMoney(value: number): string {
 function renderFeatureList(items: string[]) {
   return (
     <div className="grid gap-3 md:grid-cols-3">
-      {items.map((item) => (
+      {items.map(item => (
         <div
           key={item}
           className="rounded-2xl border bg-background p-4 text-sm text-foreground/75 shadow-sm"
@@ -89,7 +58,7 @@ function renderFeatureList(items: string[]) {
 function MetricCards({ metrics }: { metrics: Metric[] }) {
   return (
     <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      {metrics.map((metric) => (
+      {metrics.map(metric => (
         <Card key={metric.label} className="shadow-sm">
           <CardHeader className="pb-2">
             <CardDescription>{metric.label}</CardDescription>
@@ -109,38 +78,29 @@ export async function RoleDashboardPage({ role }: { role: AuthRole }) {
   const dashboardPath = getDashboardPathByRole(role) ?? '/dashboard';
 
   if (role === 'USER') {
-    const [ordersResult, paymentsResult] = await Promise.all([
-      getMyOrders().catch(() => null),
-      getMyPayments().catch(() => null),
-    ]);
-    const orders = Array.isArray(ordersResult?.data) ? ordersResult.data : [];
-    const payments = Array.isArray(paymentsResult?.data)
-      ? paymentsResult.data
-      : [];
+    const overviewResult = await getDashboardOverview().catch(() => null);
+    const overview = overviewResult?.data;
+    const orders = Array.isArray(overview?.recentOrders) ? overview.recentOrders : [];
 
     const metrics: Metric[] = [
       {
         label: 'Orders',
-        value: String(orders.length),
+        value: String(overview?.orders ?? 0),
         description: 'Your backend order history',
       },
       {
         label: 'Pending payments',
-        value: String(
-          orders.filter((order) => order.paymentStatus !== 'PAID').length,
-        ),
+        value: String(overview?.pendingPayments ?? 0),
         description: 'Orders awaiting payment completion',
       },
       {
         label: 'Delivered',
-        value: String(
-          orders.filter((order) => order.status === 'DELIVERED').length,
-        ),
+        value: String(overview?.delivered ?? 0),
         description: 'Completed deliveries',
       },
       {
         label: 'Payment records',
-        value: String(payments.length),
+        value: String(overview?.payments ?? 0),
         description: 'Your payment history',
       },
     ];
@@ -178,10 +138,9 @@ export async function RoleDashboardPage({ role }: { role: AuthRole }) {
           <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {config.navigationItems
               .filter(
-                (item) =>
-                  item.label !== 'Dashboard' && item.label !== 'Profile',
+                item => item.label !== 'Dashboard' && item.label !== 'Profile',
               )
-              .map((item) => (
+              .map(item => (
                 <Button
                   asChild
                   key={item.href}
@@ -226,7 +185,7 @@ export async function RoleDashboardPage({ role }: { role: AuthRole }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {orders.slice(0, 5).map((order) => (
+                {orders.slice(0, 5).map(order => (
                   <TableRow key={order.orderId}>
                     <TableCell className="font-medium">
                       {order.orderId}
@@ -257,58 +216,38 @@ export async function RoleDashboardPage({ role }: { role: AuthRole }) {
       </div>
     );
   }
-
-  const [
-    categoriesResult,
-    brandsResult,
-    productsResult,
-    usersResult,
-    ordersResult,
-    paymentsResult,
-    // couponsResult,
-    adminsResult,
-  ] = await Promise.all([
-    getAllCategories().catch(() => null),
-    getAllBrands().catch(() => null),
-    getAllProducts({ includeInactive: true }).catch(() => null),
-    getAllUsers().catch(() => null),
-    getAllOrdersForAdmin().catch(() => null),
-    getAllPaymentsForAdmin().catch(() => null),
-    // getAllCoupons({ limit: 1 }).catch(() => null),
-    role === 'SUPER_ADMIN'
-      ? getAllAdmins().catch(() => null)
-      : Promise.resolve(null),
-  ]);
+  const overviewResult = await getDashboardOverview().catch(() => null);
+  const overview = overviewResult?.data;
 
   const metrics: Metric[] = [
     {
       label: 'Categories',
-      value: String(countItems(categoriesResult)),
+      value: String(overview?.categories ?? 0),
       description: 'Catalog taxonomy pulled from the backend',
     },
     {
       label: 'Brands',
-      value: String(countItems(brandsResult)),
+      value: String(overview?.brands ?? 0),
       description: 'Brand records managed in backend',
     },
     {
       label: 'Products',
-      value: String(countItems(productsResult)),
+      value: String(overview?.products ?? 0),
       description: 'Live product catalogue',
     },
     {
       label: 'Users',
-      value: String(countItems(usersResult)),
+      value: String(overview?.users ?? 0),
       description: 'Registered customer accounts',
     },
     {
       label: 'Orders',
-      value: String(countItems(ordersResult)),
+      value: String(overview?.orders ?? 0),
       description: 'Operational order pipeline',
     },
     {
       label: 'Payments',
-      value: String(countItems(paymentsResult)),
+      value: String(overview?.payments ?? 0),
       description: 'Payment records and statuses',
     },
     // TODO: add coupons back
@@ -321,13 +260,12 @@ export async function RoleDashboardPage({ role }: { role: AuthRole }) {
       ? [
           {
             label: 'Admins',
-            value: String(countItems(adminsResult)),
+            value: String(overview?.admins ?? 0),
             description: 'Privileged admin accounts',
           },
         ]
       : []),
   ];
-
   return (
     <div className="space-y-6">
       <Card className="shadow-sm">

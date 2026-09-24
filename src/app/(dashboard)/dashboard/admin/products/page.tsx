@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { DashboardProductsManager } from '@/components/dashboard/DashboardProductsManager';
 import { requireDashboardRoles } from '@/lib/dashboard-auth';
 import { buildMetadata } from '@/lib/seo';
-import { getAllProducts } from '@/services/Product';
-import { getAllBrandsAcrossPages } from '@/services/Brand';
-import { getAllCategories } from '@/services/Category';
+import { getDashboardProducts } from '@/services/Product';
+import { getBrandOptions } from '@/services/Brand';
+import { getCategoryOptions } from '@/services/Category';
 import type { BackendCategory } from '@/services/Category/mappers';
 
 type Props = {
@@ -30,15 +30,19 @@ export default async function AdminProductsPage({ searchParams }: Props) {
   await requireDashboardRoles(['ADMIN', 'SUPER_ADMIN']);
   const query = await searchParams;
   const page = parsePositiveInteger(query.page, 1);
-  const limit = parsePositiveInteger(query.limit, 50);
+  const limit = parsePositiveInteger(query.limit, 25);
   const searchTerm = query.searchTerm?.trim() ?? '';
 
   const [productsResult, brandsResult, categoriesResult] = await Promise.all([
-    getAllProducts({ page, limit, searchTerm, includeInactive: true }).catch(
-      () => null,
-    ),
-    getAllBrandsAcrossPages({ limit: 100 }).catch(() => null),
-    getAllCategories().catch(() => null),
+    getDashboardProducts({
+      page,
+      limit,
+      searchTerm,
+      includeInactive: true,
+      isAdminPanel: true,
+    }).catch(() => null),
+    getBrandOptions().catch(() => null),
+    getCategoryOptions().catch(() => null),
   ]);
 
   const products = productsResult?.data ?? [];
