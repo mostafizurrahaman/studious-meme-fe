@@ -131,6 +131,7 @@ type GetAllProductsParams = {
   subCategory?: string;
   includeInactive?: boolean;
   excludeSlug?: string;
+  isAdminPanel?: boolean;
 };
 
 const buildProductSearchParams = (params: GetAllProductsParams) => {
@@ -161,6 +162,9 @@ const buildProductSearchParams = (params: GetAllProductsParams) => {
   }
   if (params.excludeSlug?.trim())
     searchParams.set('excludeSlug', params.excludeSlug.trim());
+  if (typeof params.isAdminPanel === 'boolean') {
+    searchParams.set('isAdminPanel', String(params.isAdminPanel));
+  }
 
   return searchParams;
 };
@@ -180,6 +184,26 @@ export const getAllProducts = async (
       next: {
         revalidate: CACHE_REVALIDATE.LONG,
         tags: [CACHE_TAGS.PRODUCTS],
+      },
+    },
+  );
+};
+
+export const getDashboardProducts = async (
+  params: GetAllProductsParams = {},
+): Promise<BackendEnvelope<BackendProduct[]>> => {
+  const searchParams = buildProductSearchParams(params);
+  const query = searchParams.toString();
+
+  const accessToken = await getValidAccessTokenForServerActions();
+
+  return requestBackendJson<BackendEnvelope<BackendProduct[]>>(
+    `/product/all${query ? `?${query}` : ''}`,
+    {
+      method: 'GET',
+      token: accessToken ?? undefined,
+      next: {
+        revalidate: 0,
       },
     },
   );
@@ -277,6 +301,27 @@ export const getProductBySlug = async (
       },
     },
   );
+};
+
+export const getAdminProductDetails = async (
+  id: string,
+): Promise<BackendEnvelope<BackendProduct>> => {
+  const accessToken = await getValidAccessTokenForServerActions();
+  const response = await requestBackendJson<BackendEnvelope<BackendProduct[]>>(
+    `/product/${id}/admin`,
+    {
+      method: 'GET',
+      token: accessToken ?? undefined,
+      next: {
+        revalidate: 0,
+      },
+    },
+  );
+
+  return {
+    ...response,
+    data: Array.isArray(response.data) ? response.data[0] : response.data,
+  };
 };
 
 export const getActiveProductBySlug = async (

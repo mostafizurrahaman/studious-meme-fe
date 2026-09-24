@@ -17,8 +17,8 @@ import { SectionHeading } from '@/components/SectionHeading';
 import { HomeHeroCarousel } from '@/components/HomeHeroCarousel';
 import dynamic from 'next/dynamic';
 
-const HomeAboutSection = dynamic(
-  () => import('@/components/HomeAboutSection').then((mod) => mod.HomeAboutSection)
+const HomeAboutSection = dynamic(() =>
+  import('@/components/HomeAboutSection').then(mod => mod.HomeAboutSection),
 );
 import {
   mapBackendBrandToStorefrontBrand,

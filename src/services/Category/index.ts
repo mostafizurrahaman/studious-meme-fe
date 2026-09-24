@@ -361,3 +361,10 @@ export const getActiveSubCategoryBySlug = async (
     },
   );
 };
+
+export const getCategoryOptions = async (): Promise<BackendEnvelope<unknown>> => {
+  return requestBackendJson<BackendEnvelope<unknown>>('/category/options', {
+    method: 'GET',
+    next: { revalidate: CACHE_REVALIDATE.LONG, tags: [CACHE_TAGS.CATEGORIES] },
+  });
+};

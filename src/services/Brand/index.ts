@@ -132,6 +132,18 @@ export const getActiveBrands = async (): Promise<
   );
 };
 
+export const getBrandOptions = async (): Promise<
+  BackendEnvelope<Pick<BackendBrand, '_id' | 'name' | 'slug'>[]>
+> => {
+  return requestBackendJson<BackendEnvelope<Pick<BackendBrand, '_id' | 'name' | 'slug'>[]>>(
+    '/brand/options',
+    {
+      method: 'GET',
+      next: { revalidate: CACHE_REVALIDATE.LONG, tags: [CACHE_TAGS.BRANDS] },
+    },
+  );
+};
+
 export const getBrandBySlug = async (
   slug: string,
 ): Promise<BackendEnvelope<BackendBrand>> => {
@@ -258,3 +270,4 @@ export const deleteBrand = async (
   revalidatePath('/dashboard/super-admin/brands');
   return result;
 };
+
