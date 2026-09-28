@@ -1015,6 +1015,7 @@ export function buildProductSchemas(
   const dynamicValidUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
     .toISOString()
     .split('T')[0];
+  const validFrom = new Date().toISOString().split('T')[0];
 
   const offer =
     Number.isFinite(currentPrice) && currentPrice > 0
@@ -1024,6 +1025,7 @@ export function buildProductSchemas(
           priceCurrency: 'BDT',
           price: currentPrice,
           priceValidUntil: dynamicValidUntil,
+          validFrom,
           availability: isInStockLabel(product.stock)
             ? 'https://schema.org/InStock'
             : 'https://schema.org/OutOfStock',
@@ -1033,6 +1035,41 @@ export function buildProductSchemas(
             name: siteConfig.name,
             '@id': `${siteConfig.url}/#organization`,
           },
+          shippingDetails: {
+            '@type': 'OfferShippingDetails',
+            shippingRate: {
+              '@type': 'MonetaryAmount',
+              value: '100',
+              currency: 'BDT',
+            },
+            shippingDestination: {
+              '@type': 'DefinedRegion',
+              addressCountry: 'BD',
+            },
+            deliveryTime: {
+              '@type': 'ShippingDeliveryTime',
+              handlingTime: {
+                '@type': 'QuantitativeValue',
+                minValue: 0,
+                maxValue: 1,
+                unitCode: 'DAY'
+              },
+              transitTime: {
+                '@type': 'QuantitativeValue',
+                minValue: 1,
+                maxValue: 3,
+                unitCode: 'DAY'
+              }
+            }
+          },
+          hasMerchantReturnPolicy: {
+            '@type': 'MerchantReturnPolicy',
+            applicableCountry: 'BD',
+            returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+            merchantReturnDays: 3,
+            returnMethod: 'https://schema.org/ReturnByMail',
+            returnFees: 'https://schema.org/FreeReturn'
+          }
         }
       : undefined;
 
@@ -1043,13 +1080,13 @@ export function buildProductSchemas(
     0;
   const reviewCount = reviewSummary?.total ?? (reviews?.length || 0);
 
-  const aggregateRating = {
+  const aggregateRating = (reviewCount > 0 && numRating > 0) ? {
     '@type': 'AggregateRating',
-    ratingValue: numRating > 0 ? Number(numRating.toFixed(1)) : 5,
-    reviewCount: reviewCount > 0 ? reviewCount : 1,
+    ratingValue: Number(numRating.toFixed(1)),
+    reviewCount: reviewCount,
     bestRating: '5',
     worstRating: '1',
-  };
+  } : undefined;
 
   const formattedReviews =
     reviews && reviews.length > 0
@@ -1074,7 +1111,13 @@ export function buildProductSchemas(
     product.description || product.features
       ? [product.description, product.features].filter(Boolean).join(' ')
       : `${product.title} available from ${product.brand} on ${siteConfig.name}.`;
-  const cleanDescription = stripHtml(rawDescription);
+  
+  let cleanDescription = stripHtml(rawDescription);
+  if (cleanDescription.length > 4999) {
+    cleanDescription = cleanDescription.slice(0, 4996) + '...';
+  } else if (cleanDescription.length === 0) {
+    cleanDescription = product.title;
+  }
 
   const youtubeId = product.youtubeVideoId?.trim();
   const videoObject = youtubeId
@@ -1101,6 +1144,8 @@ export function buildProductSchemas(
         },
       }
     : undefined;
+    
+  const validSku = (product.sku && typeof product.sku === 'string' && product.sku.trim().length > 0) ? product.sku : product.slug;
 
   return [
     {
@@ -1134,8 +1179,8 @@ export function buildProductSchemas(
       name: product.title,
       image: allImages,
       description: cleanDescription,
-      sku: product.sku || product.slug,
-      mpn: product.sku || product.slug,
+      sku: validSku,
+      mpn: validSku,
       category: product.category,
       url,
       brand: {
@@ -1143,7 +1188,7 @@ export function buildProductSchemas(
         name: product.brand || siteConfig.name,
       },
       offers: offer,
-      aggregateRating,
+      ...(aggregateRating ? { aggregateRating } : {}),
       ...(formattedReviews && formattedReviews.length > 0
         ? { review: formattedReviews }
         : {}),
