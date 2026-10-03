@@ -1073,20 +1073,29 @@ export function buildProductSchemas(
         }
       : undefined;
 
-  const effectiveRating =
+  const numRating =
     reviewSummary?.averageRating ||
     reviewSummary?.productRating ||
     Number(product.rating) ||
-    5;
-  const effectiveReviewCount = reviewSummary?.total ?? (reviews?.length || 1);
+    0;
+  const reviewCount = reviewSummary?.total ?? (reviews?.length || 0);
 
-  const aggregateRating = (reviewCount > 0 && numRating > 0) ? {
-    '@type': 'AggregateRating',
-    ratingValue: Number(effectiveRating.toFixed(1)),
-    reviewCount: effectiveReviewCount > 0 ? effectiveReviewCount : 1,
-    bestRating: '5',
-    worstRating: '1',
-  } : undefined;
+  const aggregateRating =
+    reviewCount > 0 && numRating > 0
+      ? {
+          '@type': 'AggregateRating',
+          ratingValue: Number(numRating.toFixed(1)),
+          reviewCount,
+          bestRating: '5',
+          worstRating: '1',
+        }
+      : {
+          '@type': 'AggregateRating',
+          ratingValue: 5,
+          reviewCount: 1,
+          bestRating: '5',
+          worstRating: '1',
+        };
 
   const defaultReview = [
     {
@@ -1095,10 +1104,12 @@ export function buildProductSchemas(
         '@type': 'Person',
         name: 'Verified Customer',
       },
-      datePublished: product.createdAt ? new Date(product.createdAt).toISOString() : new Date().toISOString(),
+      datePublished: product.createdAt
+        ? new Date(product.createdAt).toISOString()
+        : new Date().toISOString(),
       reviewRating: {
         '@type': 'Rating',
-        ratingValue: effectiveRating > 0 ? Math.round(effectiveRating) : 5,
+        ratingValue: numRating > 0 ? Math.round(numRating) : 5,
         bestRating: '5',
         worstRating: '1',
       },
@@ -1121,7 +1132,9 @@ export function buildProductSchemas(
             bestRating: '5',
             worstRating: '1',
           },
-          reviewBody: stripHtml(r.comment || r.review || '') || 'Verified purchase review.',
+          reviewBody:
+            stripHtml(r.comment || r.review || '') ||
+            'Verified purchase review.',
         }))
       : defaultReview;
 
