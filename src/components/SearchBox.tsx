@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { searchProducts, type SearchResult } from '@/services/Product';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, Search, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { trackSearch } from '@/lib/facebook-pixel';
 
@@ -49,10 +49,7 @@ export function SearchBox() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(event.target as Node)
-      ) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -61,17 +58,16 @@ export function SearchBox() {
   }, []);
 
   useEffect(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    if (query.trim().length < 2) return;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (query.trim().length < 2) {
+        setResults(null);
+        return;
+    };
 
     timeoutRef.current = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const data = await searchProducts(query, 10);
-
+        const data = await searchProducts(query, 20);
         setResults(data);
         setIsOpen(true);
         trackSearch(query);
@@ -83,31 +79,25 @@ export function SearchBox() {
     }, DEBOUNCE_MS);
 
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [query]);
 
-  const visibleResults = query.trim().length >= 2 ? results : null;
-  const showDropdown = isOpen && visibleResults;
-  const dropdownResults = visibleResults ?? { products: [], suggestions: [] };
-
   function handleSearchSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     const term = query.trim();
-
     if (!term) return;
-
     setIsOpen(false);
     router.push(`/shop?searchTerm=${encodeURIComponent(term)}`);
   }
 
+  const showDropdown = isOpen && results && query.trim().length >= 2;
+
   return (
     <div ref={wrapperRef} className="relative w-full">
+      {/* Search Input Form */}
       <form
-        className="flex w-full overflow-hidden rounded-full border border-border bg-background shadow-sm"
+        className="flex w-full overflow-hidden rounded-full border border-border bg-background shadow-sm focus-within:ring-2 focus-within:ring-primary/20"
         onSubmit={handleSearchSubmit}
       >
         <div className="relative flex flex-1 items-center">
@@ -117,10 +107,19 @@ export function SearchBox() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => query.trim().length >= 2 && setIsOpen(true)}
-            placeholder="Search…"
+            placeholder="Search products..."
             className="h-11 w-full bg-transparent px-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
             aria-label="Search"
           />
+          {query && (
+             <button 
+                type="button" 
+                onClick={() => setQuery('')}
+                className="mr-2 p-1 text-muted-foreground hover:text-foreground"
+             >
+                <X className="h-4 w-4" />
+             </button>
+          )}
           {isLoading && (
             <Loader2 className="mr-4 h-4 w-4 animate-spin text-muted-foreground" />
           )}
@@ -128,86 +127,91 @@ export function SearchBox() {
 
         <button
           type="submit"
-          className="flex h-11 shrink-0 items-center bg-secondary px-3 text-sm font-semibold text-secondary-foreground! hover:bg-secondary/80"
+          className="flex h-11 shrink-0 items-center bg-secondary px-5 text-sm font-semibold text-secondary-foreground hover:bg-secondary/90 transition-colors"
         >
           Search
         </button>
       </form>
 
+      {/* Results Dropdown */}
       {showDropdown && (
-        <div className="absolute left-1/2 top-full z-9999 mt-2 w-[min(1080px,calc(100vw-1rem))] -translate-x-1/2 overflow-hidden rounded-3xl border border-border bg-background shadow-[0_24px_80px_rgba(15,23,42,0.16)]">
-          <div className="flex items-center justify-between border-b border-border bg-muted/30 px-3 py-2.5 sm:px-4 sm:py-3">
+        <div className="absolute left-0 right-0 lg:left-1/2 lg:right-auto lg:-translate-x-1/2 top-full z-[9999] mt-2 flex flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl lg:w-[900px] xl:w-[1100px] max-h-[70vh] sm:max-h-[75vh]">
+          
+          {/* Header - Fixed at top of dropdown */}
+          <div className="flex shrink-0 items-center justify-between border-b border-border bg-muted/50 px-4 py-3">
             <div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground sm:text-xs">
-                Search results
-              </div>
-              <div className="text-xs font-bold text-secondary sm:text-sm">
-                {dropdownResults.products.length} products found
-              </div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Search Results
+              </p>
+              <p className="text-xs font-bold text-secondary">
+                {results.products.length} products found for "{query}"
+              </p>
             </div>
             <Link
               href={`/shop?searchTerm=${encodeURIComponent(query.trim())}`}
               onClick={() => setIsOpen(false)}
-              className="rounded-full bg-primary px-3 py-1.5 text-[10px] font-bold text-white! transition hover:text-black! hover:opacity-90 sm:px-4 sm:py-2 sm:text-xs"
+              className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold !text-primary-foreground transition hover:opacity-90"
             >
-              View all
+              View All
             </Link>
           </div>
 
-          {dropdownResults.products.length > 0 ? (
-            <div className="max-h-[70vh] overflow-y-auto p-2.5 sm:p-3">
-              <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-                {dropdownResults.products.slice(0, 8).map((product) => (
+          {/* Results List - Scrollable Area */}
+          <div className="flex-1 overflow-y-auto overscroll-contain p-3 custom-scrollbar">
+            {results.products.length > 0 ? (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {results.products.map((product) => (
                   <Link
                     key={product.slug}
                     href={`/product/${product.slug}`}
                     onClick={() => setIsOpen(false)}
-                    className="group flex gap-2.5 rounded-2xl border border-border bg-background p-2.5 transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md sm:gap-3 sm:p-3"
+                    className="group flex items-center gap-3 rounded-xl border border-border/50 bg-card p-2 transition-all hover:border-primary/50 hover:shadow-md"
                   >
-                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-muted sm:h-18 sm:w-18">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
                       {product.images[0] ? (
                         <Image
                           src={product.images[0]}
                           alt={product.title}
-                          title={product.title}
                           fill
                           sizes="64px"
-                          className="object-contain p-1.5 transition duration-300 group-hover:scale-105"
+                          className="object-contain p-1 transition duration-300 group-hover:scale-110"
                         />
-                      ) : null}
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-muted text-[10px] text-muted-foreground">No Image</div>
+                      )}
                     </div>
+                    
                     <div className="min-w-0 flex-1">
-                      <div className="line-clamp-2 text-[12px] font-semibold leading-4 text-foreground group-hover:text-primary sm:text-[13px] sm:leading-5">
+                      <h4 className="line-clamp-1 text-sm font-bold text-foreground group-hover:text-primary">
                         <HighlightedText text={product.title} query={query} />
-                      </div>
-                      <div className="mt-0.5 text-[10px] text-foreground/55 sm:mt-1 sm:text-xs">
-                        {product.sellingUnit ? product.sellingUnit : 'Product'}
-                      </div>
-                      <div className="mt-2 flex items-center gap-2">
-                        {product.oldPrice ? (
-                          <span className="text-[10px] text-foreground/35 line-through sm:text-xs">
-                            Tk. {product.oldPrice.toLocaleString('en-BD')}
-                          </span>
-                        ) : null}
-                        <span className="text-[12px] font-black text-primary sm:text-sm">
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground">
+                        {product.sellingUnit || 'Unit'}
+                      </p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="text-sm font-black text-primary">
                           Tk. {product.price.toLocaleString('en-BD')}
                         </span>
-                        {product.badge ? (
-                          <span className="rounded-full bg-secondary px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-secondary-foreground">
-                            {product.badge}
+                        {product.oldPrice && (
+                          <span className="text-[10px] text-muted-foreground line-through">
+                            Tk. {product.oldPrice.toLocaleString('en-BD')}
                           </span>
-                        ) : null}
+                        )}
                       </div>
                     </div>
                   </Link>
                 ))}
               </div>
-            </div>
-          ) : (
-            <div className="p-4 text-sm text-muted-foreground">
-              No products found.
-            </div>
-          )}
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <Search className="mb-2 h-8 w-8 text-muted-foreground/30" />
+                <p className="text-sm text-muted-foreground">No products found matching your search.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Bottom Shadow Overlay for Mobile (Optional) */}
+          <div className="pointer-events-none absolute bottom-0 left-0 h-4 w-full bg-gradient-to-t from-background to-transparent sm:hidden" />
         </div>
       )}
     </div>

@@ -17,6 +17,8 @@ import { getDashboardPath } from '@/lib/dashboard';
 import { siteConfig } from '@/lib/seo';
 import type { Category } from '@/lib/storefront-types';
 
+import { ChevronDown } from 'lucide-react';
+
 type Props = {
   categories: Category[];
 };
@@ -35,6 +37,7 @@ export function Header({ categories }: Props) {
   const [mobileDrawerTab, setMobileDrawerTab] = useState<'categories' | 'menu'>(
     'categories',
   );
+  const [expandedCategorySlug, setExpandedCategorySlug] = useState<string | null>(null);
   const [activeCategorySlug, setActiveCategorySlug] = useState(
     categories[0]?.slug ?? '',
   );
@@ -44,6 +47,16 @@ export function Header({ categories }: Props) {
     categories.find((category) => category.slug === activeCategorySlug) ??
     categories[0] ??
     null;
+
+  const closeMobileMenu = () => {
+    if (menuRef.current) {
+      menuRef.current.open = false;
+    }
+  };
+
+  const toggleCategory = (slug: string) => {
+    setExpandedCategorySlug((prev) => (prev === slug ? null : slug));
+  };
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -150,17 +163,15 @@ export function Header({ categories }: Props) {
   };
 
   const navLinkClass = (href: string) =>
-    `inline-flex items-center rounded-full px-3 py-1.5 transition ${
-      isActive(href)
-        ? 'bg-primary text-white'
-        : 'text-foreground hover:!bg-primary hover:!text-white'
+    `inline-flex items-center rounded-full px-3 py-1.5 transition ${isActive(href)
+      ? 'bg-primary text-white'
+      : 'text-foreground hover:!bg-primary hover:!text-white'
     }`;
 
   const drawerLinkClass = (href: string) =>
-    `rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
-      isActive(href)
-        ? 'border-primary bg-primary text-white'
-        : 'border-border text-foreground hover:border-primary/30 hover:!bg-primary hover:!text-white'
+    `rounded-2xl border px-4 py-3 text-sm font-semibold transition ${isActive(href)
+      ? 'border-primary bg-primary text-white'
+      : 'border-border text-foreground hover:border-primary/30 hover:!bg-primary hover:!text-white'
     }`;
 
   const activeStyle = (href: string) =>
@@ -171,10 +182,10 @@ export function Header({ categories }: Props) {
   const activeDrawerStyle = (href: string) =>
     isActive(href)
       ? {
-          backgroundColor: 'var(--primary)',
-          borderColor: 'var(--primary)',
-          color: '#ffffff',
-        }
+        backgroundColor: 'var(--primary)',
+        borderColor: 'var(--primary)',
+        color: '#ffffff',
+      }
       : undefined;
 
   const activePillStyle = (href: string) =>
@@ -232,31 +243,67 @@ export function Header({ categories }: Props) {
                 </button>
               </div>
 
-              <div className="max-h-[70vh] overflow-y-auto">
+              <div className="max-h-[calc(100dvh-150px)] overflow-y-auto overscroll-contain pb-12 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 {mobileDrawerTab === 'categories' ? (
-                  <div className="grid">
-                    {categories.map((category) => (
-                      <Link
-                        key={category.name}
-                        href={category.href}
-                        onClick={() => setMobileDrawerTab('categories')}
-                        className="border-b border-border px-4 py-4 text-sm font-semibold text-foreground transition hover:text-primary"
-                      >
-                        {category.name}
-                      </Link>
-                    ))}
+                  <div className="grid divide-y divide-border">
+                    {categories.map((category) => {
+                      const hasSub = (category.subCategories?.length ?? 0) > 0;
+                      const isExpanded = expandedCategorySlug === category.slug;
+
+                      return (
+                        <div key={category.name} className="flex flex-col">
+                          <div className="flex items-center justify-between px-4 py-3.5 transition hover:bg-muted/40">
+                            <Link
+                              href={category.href}
+                              onClick={closeMobileMenu}
+                              className="text-sm font-semibold text-foreground transition hover:text-primary flex-1 pr-2"
+                            >
+                              {category.name}
+                            </Link>
+                            {hasSub ? (
+                              <button
+                                type="button"
+                                onClick={() => toggleCategory(category.slug)}
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted/70 text-foreground/70 transition hover:bg-primary/10 hover:text-primary"
+                                aria-label={`Toggle subcategories for ${category.name}`}
+                              >
+                                <ChevronDown
+                                  className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                                />
+                              </button>
+                            ) : null}
+                          </div>
+
+                          {hasSub && isExpanded ? (
+                            <div className="grid gap-1 border-t border-border/50 bg-muted/30 px-6 py-2">
+                              {category.subCategories?.map((subCategory) => (
+                                <Link
+                                  key={subCategory.slug}
+                                  href={`/category/${category.slug}/${subCategory.slug}`}
+                                  onClick={closeMobileMenu}
+                                  className="flex items-center justify-between py-2 text-xs font-semibold text-foreground/80 transition hover:text-primary"
+                                >
+                                  <span>{subCategory.name}</span>
+                                  <span className="text-primary/70 text-[10px]">→</span>
+                                </Link>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
-                  <div className="grid">
+                  <div className="grid divide-y divide-border">
                     {(
                       [
                         ...(user
                           ? [
-                              [
-                                'Dashboard',
-                                getDashboardPath(user.role),
-                              ] as const,
-                            ]
+                            [
+                              'Dashboard',
+                              getDashboardPath(user.role),
+                            ] as const,
+                          ]
                           : []),
                         ['Hardware Store', '/main-categories'],
                         ['Our Contacts', '/our-contacts'],
@@ -268,7 +315,8 @@ export function Header({ categories }: Props) {
                       <Link
                         key={label}
                         href={href}
-                        className={`border-b border-border px-4 py-4 text-sm font-semibold transition ${index === 0 || index === 2 ? 'text-primary' : 'text-foreground'} hover:text-primary`}
+                        onClick={closeMobileMenu}
+                        className={`px-4 py-4 text-sm font-semibold transition ${index === 0 || index === 2 ? 'text-primary' : 'text-foreground'} hover:text-primary`}
                       >
                         {label}
                       </Link>
@@ -306,13 +354,13 @@ export function Header({ categories }: Props) {
               <summary className="list-none cursor-pointer rounded-full bg-secondary px-4 py-3 text-sm font-semibold text-secondary-foreground outline-none [&::-webkit-details-marker]:hidden">
                 Categories
               </summary>
-              <div className="absolute left-0 top-full z-20 mt-3 hidden w-176 rounded-3xl border border-border bg-card p-5 shadow-2xl ring-1 ring-black/5 group-open:block">
-                <div className="grid gap-4 lg:grid-cols-[1fr_1.15fr]">
-                  <div>
-                    <div className="text-xs font-bold uppercase tracking-[0.28em] text-primary">
+              <div className="absolute left-0 top-full z-20 mt-3 hidden w-176 max-h-[calc(100vh-140px)] flex-col rounded-3xl border border-border bg-card p-5 shadow-2xl ring-1 ring-black/5 group-open:flex">
+                <div className="grid min-h-0 gap-4 lg:grid-cols-[1fr_1.15fr]">
+                  <div className="flex min-h-0 flex-col">
+                    <div className="shrink-0 text-xs font-bold uppercase tracking-[0.28em] text-primary">
                       Top categories
                     </div>
-                    <div className="mt-4 grid gap-2">
+                    <div className="mt-4 max-h-[calc(100vh-220px)] flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1.5 grid content-start gap-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                       {categories.map((category) => (
                         <Link
                           key={category.name}
@@ -333,14 +381,14 @@ export function Header({ categories }: Props) {
                       ))}
                     </div>
                   </div>
-                  <div>
-                    <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.28em] text-primary">
+                  <div className="flex min-h-0 flex-col">
+                    <div className="shrink-0 flex items-center justify-between text-xs font-bold uppercase tracking-[0.28em] text-primary">
                       <span>Sub categories</span>
-                      <span className="text-foreground/45">
+                      <span className="text-foreground/45 truncate max-w-[160px]" title={activeCategory?.name}>
                         {activeCategory?.name ?? 'Hover a category'}
                       </span>
                     </div>
-                    <div className="mt-4 grid gap-2">
+                    <div className="mt-4 max-h-[calc(100vh-220px)] flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1.5 grid content-start gap-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                       {activeCategory?.subCategories?.length ? (
                         activeCategory.subCategories.map((subCategory) => (
                           <Link
