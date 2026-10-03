@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { ArrowLeftRight, Heart, ShoppingCart, UserRound } from 'lucide-react';
 
@@ -25,6 +26,33 @@ export function MobileToolbar() {
   );
   const compareCount = useCompareStore((state) => state.items.length);
   const wishlistCount = useWishlistStore((state) => state.items.length);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+
+  // Expose the real toolbar height (0 on desktop where it is hidden) so
+  // header dropdowns can size themselves to end right above it.
+  useEffect(() => {
+    const root = document.documentElement;
+    const sync = () => {
+      const height = Math.ceil(
+        toolbarRef.current?.getBoundingClientRect().height ?? 0,
+      );
+      root.style.setProperty('--mobile-toolbar-height', `${height}px`);
+    };
+
+    sync();
+    window.addEventListener('resize', sync);
+    const observer =
+      typeof ResizeObserver !== 'undefined' && toolbarRef.current
+        ? new ResizeObserver(sync)
+        : null;
+    if (observer && toolbarRef.current) observer.observe(toolbarRef.current);
+
+    return () => {
+      window.removeEventListener('resize', sync);
+      observer?.disconnect();
+      root.style.setProperty('--mobile-toolbar-height', '0px');
+    };
+  }, []);
 
   const accountHref = user
     ? (getDashboardPathByRole(user.role) ?? '/dashboard')
@@ -49,7 +77,7 @@ export function MobileToolbar() {
     pathname.startsWith('/dashboard/');
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 lg:hidden">
+    <div ref={toolbarRef} className="fixed inset-x-0 bottom-0 z-50 lg:hidden">
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-background/95 to-transparent" />
       <div className="border-t border-border/60 bg-background/92 px-2 pt-2 pb-[max(0.65rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur-xl supports-backdrop-filter:bg-background/80">
         <div className="mx-auto grid max-w-310 grid-cols-4 gap-1">

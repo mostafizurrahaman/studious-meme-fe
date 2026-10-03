@@ -42,6 +42,7 @@ export function Header({ categories }: Props) {
     categories[0]?.slug ?? '',
   );
   const [isHidden, setIsHidden] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
   const activeCategory =
     categories.find((category) => category.slug === activeCategorySlug) ??
@@ -57,6 +58,20 @@ export function Header({ categories }: Props) {
   const toggleCategory = (slug: string) => {
     setExpandedCategorySlug((prev) => (prev === slug ? null : slug));
   };
+
+  // Lock page scroll while the mobile drawer is open so the list is the only
+  // thing that scrolls (and the hide-on-scroll header can't slide it away).
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    const { body } = document;
+    const previousOverflow = body.style.overflow;
+    body.style.overflow = 'hidden';
+
+    return () => {
+      body.style.overflow = previousOverflow;
+    };
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -196,12 +211,20 @@ export function Header({ categories }: Props) {
   return (
     <header
       ref={headerRef}
-      className={`fixed inset-x-0 top-0 z-40 w-full border-b border-border/50 bg-background/75 text-foreground shadow-[0_12px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl supports-backdrop-filter:bg-background/60 motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out motion-reduce:transition-none ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}
+      className={`fixed inset-x-0 top-0 z-40 has-[details[open]]:z-60 has-[[data-search-open]]:z-60 w-full border-b border-border/50 bg-background/75 text-foreground shadow-[0_12px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl supports-backdrop-filter:bg-background/60 motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out motion-reduce:transition-none ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}
     >
       {/* 1st layer */}
       <Container>
         <div className="lg:hidden">
-          <details ref={menuRef} className="group">
+          <details
+            ref={menuRef}
+            className="group"
+            onToggle={(event) => {
+              const open = event.currentTarget.open;
+              setIsMobileMenuOpen(open);
+              if (open) setIsHidden(false);
+            }}
+          >
             <summary className="list-none cursor-pointer outline-none [&::-webkit-details-marker]:hidden">
               <div className="grid grid-cols-[36px_1fr_36px] items-center gap-2 py-2.5">
                 <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-lg leading-none text-foreground">
@@ -225,8 +248,15 @@ export function Header({ categories }: Props) {
               </div>
             </summary>
 
-            <Card className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-2xl p-0 shadow-2xl bg-background border border-border">
-              <div className="grid grid-cols-2 border-b border-border text-sm font-bold uppercase tracking-[0.14em] text-foreground/45">
+            <Card
+              className="absolute inset-x-3 top-full z-50 mt-2 flex flex-col overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-2xl"
+              style={{
+                // Exact space between the header bottom and the mobile toolbar top.
+                maxHeight:
+                  'calc(100dvh - var(--storefront-header-height, 120px) - var(--mobile-toolbar-height, 80px) - 16px)',
+              }}
+            >
+              <div className="grid shrink-0 grid-cols-2 border-b border-border text-sm font-bold uppercase tracking-[0.14em] text-foreground/45">
                 <button
                   type="button"
                   onClick={() => setMobileDrawerTab('categories')}
@@ -243,7 +273,7 @@ export function Header({ categories }: Props) {
                 </button>
               </div>
 
-              <div className="max-h-[calc(100dvh-180px)] overflow-y-auto overscroll-contain pb-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 {mobileDrawerTab === 'categories' ? (
                   <div className="grid divide-y divide-border">
                     {categories.map((category) => {
