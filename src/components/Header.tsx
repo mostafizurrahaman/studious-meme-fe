@@ -225,7 +225,7 @@ export function Header({ categories }: Props) {
               </div>
             </summary>
 
-            <Card className="mt-3 overflow-hidden rounded-none rounded-r-3xl p-0 shadow-2xl">
+            <Card className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-2xl p-0 shadow-2xl bg-background border border-border">
               <div className="grid grid-cols-2 border-b border-border text-sm font-bold uppercase tracking-[0.14em] text-foreground/45">
                 <button
                   type="button"
@@ -243,7 +243,7 @@ export function Header({ categories }: Props) {
                 </button>
               </div>
 
-              <div className="max-h-[calc(100dvh-150px)] overflow-y-auto overscroll-contain pb-12 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <div className="max-h-[calc(100dvh-180px)] overflow-y-auto overscroll-contain pb-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 {mobileDrawerTab === 'categories' ? (
                   <div className="grid divide-y divide-border">
                     {categories.map((category) => {

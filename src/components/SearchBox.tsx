@@ -135,7 +135,7 @@ export function SearchBox() {
 
       {/* Results Dropdown */}
       {showDropdown && (
-        <div className="absolute left-0 right-0 lg:left-1/2 lg:right-auto lg:-translate-x-1/2 top-full z-[9999] mt-2 flex flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl lg:w-[900px] xl:w-[1100px] max-h-[70vh] sm:max-h-[75vh]">
+        <div className="absolute left-0 right-0 lg:left-1/2 lg:right-auto lg:-translate-x-1/2 top-full z-9999 mt-2 flex flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl lg:w-225 xl:w-275 max-h-[70vh] sm:max-h-[75vh]">
           
           {/* Header - Fixed at top of dropdown */}
           <div className="flex shrink-0 items-center justify-between border-b border-border bg-muted/50 px-4 py-3">
@@ -150,14 +150,14 @@ export function SearchBox() {
             <Link
               href={`/shop?searchTerm=${encodeURIComponent(query.trim())}`}
               onClick={() => setIsOpen(false)}
-              className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold !text-primary-foreground transition hover:opacity-90"
+              className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-primary-foreground! transition hover:opacity-90"
             >
               View All
             </Link>
           </div>
 
           {/* Results List - Scrollable Area */}
-          <div className="flex-1 overflow-y-auto overscroll-contain p-3 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto overscroll-contain p-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {results.products.length > 0 ? (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {results.products.map((product) => (
