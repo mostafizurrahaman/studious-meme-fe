@@ -67,6 +67,8 @@ jobs:
 
             node -v
             npm -v
+            npm install -g pnpm || sudo npm install -g pnpm
+            export PATH="$HOME/.local/share/pnpm:$PATH"
             pnpm -v
 
             echo "==> Updating source code"
