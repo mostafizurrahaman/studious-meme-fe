@@ -49,6 +49,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
+          command_timeout: 30m
 
           script: |
             set -euo pipefail
@@ -63,21 +64,28 @@ jobs:
 
             cd "$APP_DIR"
 
+            echo "==> Checking Node.js and pnpm"
+
+            node -v
+            npm -v
+            npm install -g pnpm || sudo npm install -g pnpm
+            export PATH="$HOME/.local/share/pnpm:$PATH"
+            pnpm -v
+
             echo "==> Updating source code"
 
             if [ ! -d ".git" ]; then
-              git clone -b main "${{ secrets.REPO_URL }}" .
+                git clone -b main "${{ secrets.REPO_URL }}" .
             else
-              git remote set-url origin "${{ secrets.REPO_URL }}"
-              git fetch origin main
-              git reset --hard origin/main
-              git clean -fd
+                git remote set-url origin "${{ secrets.REPO_URL }}"
+                git fetch origin main
+                git reset --hard origin/main
+                git clean -fd
             fi
 
             echo "==> Removing old Next.js build"
 
             rm -rf .next
-            rm -rf node_modules
 
             echo "==> Creating environment file"
 
@@ -96,11 +104,11 @@ jobs:
             echo "==> Restarting application"
 
             if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
-              pm2 restart "$APP_NAME" --update-env
+                pm2 restart "$APP_NAME" --update-env
             else
-              pm2 start pnpm \
-                --name "$APP_NAME" \
-                -- start
+                pm2 start pnpm \
+                    --name "$APP_NAME" \
+                    -- start
             fi
 
             pm2 save
