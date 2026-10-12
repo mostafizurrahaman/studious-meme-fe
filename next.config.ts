@@ -26,7 +26,8 @@ const csp = `
     blob:
     https://malamal.com.bd
     https://img.youtube.com
-    https://res.cloudinary.com;
+    https://res.cloudinary.com
+    https://media.malamal.com.bd;
 
   font-src 'self' data:;
 
@@ -90,6 +91,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'res.cloudinary.com', pathname: '/**' },
       { protocol: 'https', hostname: 'img.youtube.com', pathname: '/**' },
       { protocol: 'https', hostname: 'malamal.com.bd', pathname: '/**' },
+      { protocol: 'https', hostname: 'media.malamal.com.bd', pathname: '/**' },
     ],
   },
 
