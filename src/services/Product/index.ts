@@ -436,11 +436,13 @@ function toFormData(payload: Record<string, unknown>) {
     (item): item is string => typeof item === 'string' && Boolean(item),
   );
 
+  const hasImagesField = 'images' in payload && payload.images !== undefined;
+
   formData.set(
     'data',
     JSON.stringify({
       ...rest,
-      ...(imageUrls.length > 0 ? { images: imageUrls } : {}),
+      ...(hasImagesField ? { images: imageUrls } : {}),
     }),
   );
 
