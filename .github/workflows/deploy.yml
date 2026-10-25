@@ -11,12 +11,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-and-deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       # ১. রানারের ভার্চুয়াল মেশিনে কোড নিয়ে আসা
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       # ২. রানারে Node.js সেটআপ করা
@@ -31,81 +31,89 @@ jobs:
         with:
           version: 8
 
-      # ৪. রানারে ডিপেন্ডেন্সি ইন্সটল করা (টেস্ট করার জন্য প্রয়োজন)
-      - name: Install dependencies on runner
-        run: pnpm install
+      # ৪. রানারে ডিপেন্ডেন্সি ইন্সটল করা (GitHub Cache সহ)
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       # ৫. রানারে টেস্ট স্ক্রিপ্ট চালানো
-      # আপনার package.json-এ 'test' স্ক্রিপ্ট থাকতে হবে
       - name: Run Tests
         run: pnpm test
 
-      # ৬. টেস্ট পাস হলে তবেই কেবল SSH-এর মাধ্যমে VPS-এ ডিপ্লয়মেন্ট শুরু হবে
-      - name: Deploy over SSH
-        if: success()
+      # ৬. বিল্ড টাইমে NEXT_PUBLIC_* ভ্যারিয়েবল ইনলাইন করার জন্য .env ফাইল তৈরি করা
+      - name: Setup build environment
+        run: |
+          cat > .env.production <<'EOF'
+          ${{ secrets.ENV_FILE }}
+          EOF
+
+      # ৭. GitHub Runner-এই সম্পূর্ণ প্রোডাকশন Standalone বিল্ড তৈরি করা (VPS-এর RAM/CPU বাঁচবে)
+      - name: Build Next.js standalone bundle
+        run: pnpm build
+
+      # ৮. Standalone ফোল্ডারে static এসেট, public ফাইল ও PM2 কনফিগ প্যাকেজ করা
+      - name: Prepare standalone release bundle
+        run: |
+          echo "==> Copying static and public assets into standalone bundle"
+          cp -r public .next/standalone/public
+          cp -r .next/static .next/standalone/.next/static
+          cp ecosystem.config.js .next/standalone/ecosystem.config.js
+          
+          echo "==> Compressing release archive"
+          cd .next/standalone
+          tar -czf ../../standalone-build.tar.gz .
+          cd ../..
+
+      # ৯. তৈরি হওয়া ছোট আর্কাইভ ফাইলটি SCP দিয়ে সরাসরি VPS-এর /tmp তে পাঠানো (~৫-১০ সেকেন্ড)
+      - name: Transfer release bundle to VPS via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          source: "standalone-build.tar.gz"
+          target: "/tmp"
+
+      # ১০. SSH দিয়ে VPS-এ ফাইল এক্সট্র্যাক্ট করা ও PM2 দিয়ে রিস্টার্ট করা (কোনো বিল্ড বা ডাউনটাইম ছাড়া)
+      - name: Deploy & Restart via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
-          timeout: "30m"
-
+          timeout: "10m"
           script: |
             set -euo pipefail
 
             APP_DIR="/var/www/MalaMal_Frontend"
             APP_NAME="malamal-frontend"
 
-            echo "==> Preparing app directory"
-
+            echo "==> Preparing destination directory"
             sudo mkdir -p "$APP_DIR"
             sudo chown -R "$USER:$USER" "$APP_DIR"
 
+            echo "==> Extracting release bundle"
+            # Remove old .next folder to prevent chunk accumulation
+            rm -rf "$APP_DIR/.next"
+            tar -xzf /tmp/standalone-build.tar.gz -C "$APP_DIR"
+            rm -f /tmp/standalone-build.tar.gz
+
             cd "$APP_DIR"
 
-            echo "==> Updating source code"
-
-            if [ ! -d ".git" ]; then
-              git clone -b main "${{ secrets.REPO_URL }}" .
-            else
-              git remote set-url origin "${{ secrets.REPO_URL }}"
-              git fetch origin main
-              git reset --hard origin/main
-              git clean -fd
-            fi
-
-            echo "==> Removing old Next.js build"
-
-            rm -rf .next
-            rm -rf node_modules
-
-            echo "==> Creating environment file"
-
+            echo "==> Updating environment configuration"
             cat > .env <<'EOF'
             ${{ secrets.ENV_FILE }}
             EOF
 
-            echo "==> Installing dependencies"
-
-            pnpm install --frozen-lockfile
-
-            echo "==> Building Next.js"
-
-            pnpm build
-
-            echo "==> Restarting application"
-
+            echo "==> Reloading application in PM2"
             if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
               pm2 restart "$APP_NAME" --update-env
             else
-              pm2 start pnpm \
-                --name "$APP_NAME" \
-                -- start
+              pm2 start ecosystem.config.js --env production
             fi
 
             pm2 save
 
-            echo "==> Deployment successful"
-
+            echo "==> Standalone deployment completed successfully in seconds!"
             pm2 status

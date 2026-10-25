@@ -58,6 +58,7 @@ const csp = `
 const nextConfig: NextConfig = {
   /* config options here */
   distDir: process.env.NEXT_DIST_DIR || '.next',
+  output: 'standalone',
 
   // Performance & SEO Optimizations
   reactStrictMode: true,

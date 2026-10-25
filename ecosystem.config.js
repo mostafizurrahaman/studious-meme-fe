@@ -3,8 +3,7 @@ module.exports = {
     {
       name: 'malamal-frontend',
 
-      script: 'pnpm',
-      args: 'start',
+      script: 'server.js',
 
       cwd: '/var/www/MalaMal_Frontend',
 
