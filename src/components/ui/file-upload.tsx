@@ -67,15 +67,15 @@ export function FileUpload({
   if (previewUrl && !isEditing) {
     return (
       <div className="space-y-2">
-        <div className="overflow-hidden rounded-2xl border border-border bg-muted shadow-sm">
-          <div className="relative aspect-video w-full">
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-xs">
+          <div className="relative h-44 w-full bg-muted/20">
             <Image
               src={previewUrl}
               alt="Selected image preview"
               fill
               unoptimized
               sizes="(max-width: 768px) 100vw, 400px"
-              className="object-cover"
+              className="object-contain p-1"
             />
           </div>
           <div className="flex items-center justify-between gap-2 border-t border-border px-3 py-2">
