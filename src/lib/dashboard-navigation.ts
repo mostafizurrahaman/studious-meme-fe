@@ -122,11 +122,17 @@ function getAdminNavigationItems(role: AuthRole): DashboardNavigationItem[] {
     },
     { label: 'Users', href: `${base}/users`, description: 'Manage users' },
     {
+      label: 'Audit Logs',
+      href: `${base}/audit-logs`,
+      description: 'Track admin activities & changes',
+    },
+    {
       label: 'Profile',
       href: `${base}/profile`,
       description: 'Update profile',
     },
   ];
+
 }
 
 function getSuperAdminNavigationItems(
@@ -200,11 +206,17 @@ function getSuperAdminNavigationItems(
       description: 'Review cart activity',
     },
     {
+      label: 'Audit Logs',
+      href: `${base}/audit-logs`,
+      description: 'Track admin activities & changes',
+    },
+    {
       label: 'Profile',
       href: `${base}/profile`,
       description: 'Update profile',
     },
   ];
+
 }
 
 const ROLE_CONFIG: Record<AuthRole, DashboardRoleConfig> = {

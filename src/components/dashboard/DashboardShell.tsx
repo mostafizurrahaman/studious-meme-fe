@@ -239,7 +239,9 @@ import {
   Settings,
   ShieldUser,
   MapPin,
+  ScrollText,
 } from 'lucide-react';
+
 import {
   Sidebar,
   SidebarContent,
@@ -318,6 +320,7 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
     Cart: ShoppingCart,
     Profile: Settings,
     Address: MapPin,
+    'Audit Logs': ScrollText,
   };
   const navItems = getDashboardNavigationItems(role).map((item) => ({
     ...item,
@@ -342,6 +345,7 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
           'Admins',
           'Hero Sections',
           'Users',
+          'Audit Logs',
           'Products',
           'Product Questions',
           'Product Reviews',
@@ -349,6 +353,7 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
           'Categories',
         ].includes(item.label),
       ),
+
       // TODO: add coupons back
       // items: navItems.filter(item =>
       //   ['Admins', 'Hero Sections', 'Users', 'Products', 'Brands', 'Categories', 'Coupons'].includes(
