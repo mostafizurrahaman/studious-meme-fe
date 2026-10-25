@@ -25,15 +25,15 @@ jobs:
         with:
           node-version: '20'
 
-      # ৩. রানারে pnpm সেটআপ করা
+      # ৩. রানারে pnpm সেটআপ করা (lockfileVersion 9.0 এর সাথে সামঞ্জস্যপূর্ণ)
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
 
-      # ৪. রানারে ডিপেন্ডেন্সি ইন্সটল করা (GitHub Cache সহ)
+      # ৪. রানারে ডিপেন্ডেন্সি ইন্সটল করা
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       # ৫. রানারে টেস্ট স্ক্রিপ্ট চালানো
       - name: Run Tests
