@@ -11,6 +11,7 @@ type TableFilterProps = {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  debounceMs?: number;
 };
 
 export function TableFilter({
@@ -18,9 +19,10 @@ export function TableFilter({
   onChange,
   placeholder = 'Search...',
   className,
+  debounceMs = 500,
 }: TableFilterProps) {
   const [inputValue, setInputValue] = useState(value);
-  const debouncedChange = useDebouncedCallback(onChange, 300);
+  const debouncedChange = useDebouncedCallback(onChange, debounceMs);
 
   return (
     <div className={`flex gap-2 ${className}`}>
