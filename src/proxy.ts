@@ -127,7 +127,7 @@ export async function proxy(request: NextRequest) {
       return buildResponse('redirect', safeRedirect);
     }
 
-    if (session.role === 'ADMIN' || session.role === 'SUPER_ADMIN') {
+    if (session.role === 'ADMIN' || session.role === 'SUPER_ADMIN' || session.role === 'MODERATOR') {
       return buildResponse(
         'redirect',
         getDashboardPathByRole(session.role) ?? '/',

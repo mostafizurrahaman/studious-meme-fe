@@ -90,13 +90,15 @@ const buildQuestionQuery = (params: ProductQuestionListParams = {}) => {
 
   if (params.page) searchParams.set('page', String(params.page));
   if (params.limit) searchParams.set('limit', String(params.limit));
-  if (params.status) searchParams.set('status', params.status);
+  if (params.status && (params.status as string) !== 'all') {
+    searchParams.set('status', params.status);
+  }
   if (params.product?.trim())
     searchParams.set('product', params.product.trim());
   if (params.user?.trim()) searchParams.set('user', params.user.trim());
   if (params.searchTerm?.trim())
     searchParams.set('searchTerm', params.searchTerm.trim());
-  if (params.sort) searchParams.set('sort', params.sort);
+  if (params.sort?.trim()) searchParams.set('sort', params.sort.trim());
 
   const query = searchParams.toString();
   return query ? `?${query}` : '';

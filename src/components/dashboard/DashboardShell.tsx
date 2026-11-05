@@ -304,6 +304,7 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
   const iconByLabel: Record<string, typeof LayoutDashboard> = {
     Dashboard: LayoutDashboard,
     Admins: ShieldUser,
+    Moderators: ShieldUser,
     Users: UsersIcon,
     Products: ShoppingBag,
     Brands: BadgeCheck,
@@ -343,6 +344,7 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
       items: navItems.filter((item) =>
         [
           'Admins',
+          'Moderators',
           'Hero Sections',
           'Users',
           'Audit Logs',

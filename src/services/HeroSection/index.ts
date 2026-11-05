@@ -4,7 +4,10 @@ import { revalidateTag } from 'next/cache';
 import { requestBackendJson } from '@/lib/backend-api';
 import { CACHE_REVALIDATE } from '@/lib/cache-revalidate';
 import { CACHE_TAGS } from '@/lib/cache-tags';
-import { getValidAccessTokenForServerActions } from '@/lib/getValidAccessToken';
+import {
+  getValidAccessTokenForServerActions,
+  getValidAccessTokenForServerHandlerGet,
+} from '@/lib/getValidAccessToken';
 import type { BackendBrand } from '@/services/Brand';
 import type { BackendCategory } from '@/services/Category/mappers';
 import type { BackendProduct } from '@/services/Product';
@@ -149,6 +152,7 @@ function bannerToFormData(payload: Partial<HeroBannerMutationPayload>) {
 export const getAllHeroBanners = async (
   params: { slot?: string; isActive?: boolean; searchTerm?: string } = {},
 ): Promise<BackendEnvelope<BackendHeroBanner[]>> => {
+  const accessToken = await getValidAccessTokenForServerHandlerGet();
   const searchParams = new URLSearchParams();
   if (params.slot) searchParams.set('slot', params.slot);
   if (params.isActive !== undefined)
@@ -162,6 +166,7 @@ export const getAllHeroBanners = async (
     `/hero/banners${query ? `?${query}` : ''}`,
     {
       method: 'GET',
+      token: accessToken ?? undefined,
       next: {
         revalidate: CACHE_REVALIDATE.LONG,
         tags: [CACHE_TAGS.HERO, CACHE_TAGS.MARKETING_CONTENT],
@@ -324,10 +329,12 @@ function legacyToFormData(payload: Partial<HeroMutationPayload>) {
 export const getAllHeroSections = async (): Promise<
   BackendEnvelope<BackendHeroSection[]>
 > => {
+  const accessToken = await getValidAccessTokenForServerHandlerGet();
   return requestBackendJson<BackendEnvelope<BackendHeroSection[]>>(
     '/hero/heroes',
     {
       method: 'GET',
+      token: accessToken ?? undefined,
       next: {
         revalidate: CACHE_REVALIDATE.LONG,
         tags: [CACHE_TAGS.HERO, CACHE_TAGS.MARKETING_CONTENT],

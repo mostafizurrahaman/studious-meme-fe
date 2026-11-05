@@ -4,7 +4,7 @@ import type React from 'react';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { ImagePlus, Pencil, Plus, Trash2, UploadCloud } from 'lucide-react';
+import { ImagePlus, Loader2, Pencil, Plus, Power, PowerOff, Trash2, UploadCloud } from 'lucide-react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +32,9 @@ import {
   deleteBrand,
   type BackendBrand,
   updateBrand,
+  toggleBrandActive,
 } from '@/services/Brand';
+import { cn } from '@/lib/utils';
 import { slugify } from '@/lib/slug';
 import { formatDashboardDate } from '@/lib/formatDate';
 import Image from 'next/image';
@@ -48,10 +50,7 @@ const brandEditSchema = z.object({
     .string({ error: 'Brand slug is required!' })
     .trim()
     .min(1, { message: 'Brand slug is required!' }),
-  description: z
-    .string({ error: 'Brand description is required!' })
-    .trim()
-    .min(1, { message: 'Brand description is required!' }),
+  description: z.string().trim().optional().or(z.literal('')),
   imageAlt: z.string().trim().optional().or(z.literal('')),
   isActive: z.boolean().default(true),
 });
@@ -82,6 +81,7 @@ export function DashboardBrandsManager({
   brands,
   paginationMeta,
   searchTerm,
+  canDelete = true,
 }: {
   brands: BackendBrand[];
   paginationMeta: {
@@ -91,12 +91,39 @@ export function DashboardBrandsManager({
     totalPages: number;
   };
   searchTerm: string;
+  canDelete?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [brandImageFile, setBrandImageFile] = useState<File | null>(null);
+  const [togglingSlug, setTogglingSlug] = useState<string | null>(null);
+
+  const handleToggleBrandActive = async (brand: BackendBrand) => {
+    if (!brand.slug || togglingSlug) return;
+    const nextActive = brand.isActive === false ? true : false;
+    setTogglingSlug(brand.slug);
+    try {
+      const result = await toggleBrandActive(brand.slug, nextActive);
+      if (!result?.success) {
+        toast.error(
+          result?.message ??
+            `Failed to ${nextActive ? 'activate' : 'deactivate'} brand.`,
+        );
+        return;
+      }
+      refresh(
+        result.message ??
+          `Brand ${nextActive ? 'activated' : 'deactivated'} successfully.`,
+        'success',
+      );
+    } catch {
+      toast.error('An unexpected error occurred while toggling brand status.');
+    } finally {
+      setTogglingSlug(null);
+    }
+  };
   const [brandImagePreview, setBrandImagePreview] = useState('');
   const [brandSlugSynced, setBrandSlugSynced] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
@@ -374,18 +401,13 @@ export function DashboardBrandsManager({
               className="gap-2"
               disabled={isCreating}
               onClick={createForm.handleSubmit(async (values) => {
-                if (!brandImageFile) {
-                  toast.error('Brand image is required.');
-                  return;
-                }
-
                 setIsCreating(true);
                 const result = await createBrand({
                   name: values.name,
                   slug: values.slug,
-                  image: brandImageFile,
+                  image: brandImageFile || undefined,
                   imageAlt: values.imageAlt?.trim() || undefined,
-                  description: values.description,
+                  description: values.description?.trim() || undefined,
                   isActive: values.isActive,
                 });
                 setIsCreating(false);
@@ -715,9 +737,31 @@ export function DashboardBrandsManager({
                           Active
                         </label>
                       ) : (
-                        <Badge variant="secondary">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={brand.isActive === false ? 'outline' : 'default'}
+                          disabled={togglingSlug === brand.slug || isPending}
+                          onClick={() => handleToggleBrandActive(brand)}
+                          className={cn(
+                            'h-7 px-2.5 text-xs font-semibold cursor-pointer transition-all',
+                            brand.isActive === false
+                              ? 'border-destructive/40 text-destructive hover:bg-destructive/10'
+                              : 'bg-emerald-600 hover:bg-emerald-700 text-white border-transparent',
+                          )}
+                          title={
+                            brand.isActive === false
+                              ? 'Click to activate brand'
+                              : 'Click to deactivate brand'
+                          }
+                        >
+                          {togglingSlug === brand.slug ? (
+                            <Loader2 className="mr-1.5 size-3 animate-spin" />
+                          ) : (
+                            <Power className="mr-1.5 size-3" />
+                          )}
                           {brand.isActive === false ? 'Inactive' : 'Active'}
-                        </Badge>
+                        </Button>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
@@ -734,7 +778,7 @@ export function DashboardBrandsManager({
                                     slug: values.slug.trim(),
                                     image: editingBrandImageFile ?? undefined,
                                     imageAlt: values.imageAlt?.trim() || undefined,
-                                    description: values.description?.trim(),
+                                    description: values.description?.trim() || undefined,
                                     isActive: values.isActive,
                                   });
                                   if (!result?.success)
@@ -763,6 +807,32 @@ export function DashboardBrandsManager({
                               )}
                             >
                               Save
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={
+                                togglingSlug === brand.slug || isPending
+                              }
+                              onClick={() => handleToggleBrandActive(brand)}
+                              title={
+                                brand.isActive === false
+                                  ? 'Activate brand'
+                                  : 'Deactivate brand'
+                              }
+                              className={
+                                brand.isActive === false
+                                  ? 'text-muted-foreground hover:text-destructive hover:bg-destructive/10'
+                                  : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/20'
+                              }
+                            >
+                              {togglingSlug === brand.slug ? (
+                                <Loader2 className="size-4 animate-spin" />
+                              ) : brand.isActive === false ? (
+                                <PowerOff className="size-4 text-destructive" />
+                              ) : (
+                                <Power className="size-4 text-emerald-600" />
+                              )}
                             </Button>
                             <Button
                               size="sm"
@@ -810,7 +880,8 @@ export function DashboardBrandsManager({
                             >
                               <Pencil className="size-4" />
                             </Button>
-                            <Button
+                            {canDelete && (
+<Button
                               size="sm"
                               variant="outline"
                               disabled={isPending}
@@ -823,6 +894,7 @@ export function DashboardBrandsManager({
                             >
                               <Trash2 className="size-4" />
                             </Button>
+                            )}
                           </>
                         )}
                       </div>

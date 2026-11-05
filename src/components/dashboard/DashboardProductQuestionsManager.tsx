@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, useTransition } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { useUser } from '@/context/UserContext';
 import {
   CheckCircle2,
   Eye,
@@ -152,6 +153,8 @@ export function DashboardProductQuestionsManager({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const { user } = useUser();
+  const canDelete = user?.role !== 'MODERATOR';
   const [questionRows, setQuestionRows] = useState(questions);
   const [search, setSearch] = useState(searchTerm);
   const [statusFilter, setStatusFilter] = useState(status);

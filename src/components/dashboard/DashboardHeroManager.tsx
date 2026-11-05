@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useUser } from '@/context/UserContext';
 import {
   ArrowDown,
   ArrowUp,
@@ -100,6 +101,10 @@ type Props = {
 
 export function DashboardHeroManager({ initialBanners, heroes }: Props) {
   const router = useRouter();
+  const { user } = useUser();
+  const canDelete = Boolean(
+    user && ['ADMIN', 'SUPER_ADMIN', 'MODERATOR'].includes(user.role),
+  );
   const [isPending, startTransition] = useTransition();
 
   // Initialize banners from initialBanners or fallback legacy heroes
@@ -769,17 +774,19 @@ export function DashboardHeroManager({ initialBanners, heroes }: Props) {
                     </Button>
 
                     {/* Delete button */}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setPendingDeleteBanner(banner)}
-                      disabled={isPending}
-                      className="h-8 w-8 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      title="Delete banner"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
+                    {canDelete && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setPendingDeleteBanner(banner)}
+                        disabled={isPending}
+                        className="h-8 w-8 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        title="Delete banner"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </Card>

@@ -18,7 +18,7 @@ export const metadata: Metadata = buildMetadata({
 export const dynamic = 'force-dynamic';
 
 export default async function AdminQuotationsPage({ searchParams }: Props) {
-  await requireDashboardRoles(['ADMIN', 'SUPER_ADMIN']);
+  await requireDashboardRoles(['ADMIN', 'SUPER_ADMIN', 'MODERATOR']);
   const query = await searchParams;
   const page = query.page ?? '1';
   const limit = query.limit ?? '50';

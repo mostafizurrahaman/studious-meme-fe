@@ -57,7 +57,7 @@ function getUserNavigationItems(role: AuthRole): DashboardNavigationItem[] {
 function getAdminNavigationItems(role: AuthRole): DashboardNavigationItem[] {
   const base = getDashboardPathByRole(role) ?? '/dashboard/admin';
 
-  return [
+  const items: DashboardNavigationItem[] = [
     { label: 'Dashboard', href: base, description: 'Role overview' },
     {
       label: 'Hero Sections',
@@ -120,19 +120,32 @@ function getAdminNavigationItems(role: AuthRole): DashboardNavigationItem[] {
       href: `${base}/cart`,
       description: 'Review cart activity',
     },
+  ];
+
+  if (role === 'ADMIN') {
+    items.push({
+      label: 'Moderators',
+      href: `${base}/moderators`,
+      description: 'Manage moderators',
+    });
+  }
+
+  items.push(
     { label: 'Users', href: `${base}/users`, description: 'Manage users' },
     {
       label: 'Audit Logs',
       href: `${base}/audit-logs`,
       description: 'Track admin activities & changes',
     },
-    {
-      label: 'Profile',
-      href: `${base}/profile`,
-      description: 'Update profile',
-    },
-  ];
+  );
 
+  items.push({
+    label: 'Profile',
+    href: `${base}/profile`,
+    description: 'Update profile',
+  });
+
+  return items;
 }
 
 function getSuperAdminNavigationItems(
@@ -216,7 +229,6 @@ function getSuperAdminNavigationItems(
       description: 'Update profile',
     },
   ];
-
 }
 
 const ROLE_CONFIG: Record<AuthRole, DashboardRoleConfig> = {
@@ -233,6 +245,19 @@ const ROLE_CONFIG: Record<AuthRole, DashboardRoleConfig> = {
     metricsLabel: 'Customer activity',
     navigationItems: getUserNavigationItems('USER'),
   },
+  MODERATOR: {
+    title: 'Moderator dashboard',
+    description:
+      'Manage catalog content, review inquiries, and assist operations.',
+    eyebrow: 'Moderation access',
+    responsibilities: [
+      'Create and update products, categories, and brands',
+      'Manage reviews and product questions',
+      'Monitor orders and customer inquiries',
+    ],
+    metricsLabel: 'Catalog moderation',
+    navigationItems: getAdminNavigationItems('MODERATOR'),
+  },
   ADMIN: {
     title: 'Admin dashboard',
     description:
@@ -240,8 +265,7 @@ const ROLE_CONFIG: Record<AuthRole, DashboardRoleConfig> = {
     eyebrow: 'Operations access',
     responsibilities: [
       'Manage products, categories, and brands',
-      // TODO: add coupons back
-      // 'Manage coupons and promotional offers',
+      'Manage moderators and staff access',
       'Monitor orders and payment status',
       'Update your own profile securely',
     ],
@@ -255,8 +279,6 @@ const ROLE_CONFIG: Record<AuthRole, DashboardRoleConfig> = {
     eyebrow: 'Platform control',
     responsibilities: [
       'Manage admins and platform access',
-      // TODO: add coupons back
-      // 'Manage coupons and promotional offers',
       'Handle catalog, orders, payments, and users',
       'Update your own profile securely',
     ],

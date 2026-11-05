@@ -7,6 +7,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { useUser } from '@/context/UserContext';
 import {
   Ban,
   CheckCircle2,
@@ -289,6 +290,8 @@ function ReviewDialogContent({
   onSaved: (review?: ProductReviewRecord) => void;
 }) {
   const [isPending, startTransition] = useTransition();
+  const { user } = useUser();
+  const canDelete = user?.role !== 'MODERATOR';
   const form = useForm<ReviewFormValues>({
     resolver: makeZodResolver(reviewFormSchema),
     defaultValues: {

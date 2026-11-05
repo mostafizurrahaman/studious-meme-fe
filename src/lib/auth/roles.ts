@@ -3,6 +3,7 @@ import type { AuthRole, DashboardRouteSegment } from '@/types';
 const ROLE_TO_SEGMENT: Record<AuthRole, DashboardRouteSegment> = {
   SUPER_ADMIN: 'super-admin',
   ADMIN: 'admin',
+  MODERATOR: 'admin',
   USER: 'user',
 };
 
@@ -115,6 +116,8 @@ export function getRoleLabel(role: string | null | undefined): string {
       return 'Super admin';
     case 'ADMIN':
       return 'Admin';
+    case 'MODERATOR':
+      return 'Moderator';
     case 'USER':
       return 'User';
     default:

@@ -36,7 +36,7 @@ const parsePositiveInteger = (value: string | undefined, fallback: number) => {
 export default async function AdminProductQuestionsPage({
   searchParams,
 }: Props) {
-  await requireDashboardRoles(['ADMIN', 'SUPER_ADMIN']);
+  await requireDashboardRoles(['ADMIN', 'SUPER_ADMIN', 'MODERATOR']);
   const query = await searchParams;
   const page = parsePositiveInteger(query.page, 1);
   const limit = parsePositiveInteger(query.limit, 20);
@@ -49,7 +49,10 @@ export default async function AdminProductQuestionsPage({
     page,
     limit,
     searchTerm,
-    status: status ? (status as 'pending' | 'answered' | 'hidden') : undefined,
+    status:
+      status && status !== 'all'
+        ? (status as 'pending' | 'answered' | 'hidden')
+        : undefined,
     product,
     sort: sort as ProductQuestionListSort,
   }).catch(() => null);

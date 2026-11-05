@@ -13,6 +13,7 @@ type AdminCreatePayload = {
   email: string;
   phone?: string;
   password: string;
+  role?: string;
   image?: File | string;
 };
 
@@ -129,6 +130,7 @@ export const createUser = async (
       email: rest.email.trim().toLowerCase(),
       phone: rest.phone,
       password: rest.password,
+      role: rest.role || 'MODERATOR',
       ...(typeof image === 'string' && image ? { image } : {}),
     }),
   );
@@ -197,6 +199,24 @@ export const deleteAdmin = async (
     `/admin/admins/${userId}`,
     {
       method: 'DELETE',
+      token: accessToken ?? undefined,
+    },
+  );
+
+  revalidateTag(CACHE_TAGS.ADMINS, 'max');
+  return result;
+};
+
+export const changeStaffPassword = async (
+  userId: string,
+  payload: { password: string },
+): Promise<BackendEnvelope<unknown>> => {
+  const accessToken = await getValidAccessTokenForServerActions();
+  const result = await requestBackendJson<BackendEnvelope<unknown>>(
+    `/admin/admins/${userId}/password`,
+    {
+      method: 'PATCH',
+      body: payload,
       token: accessToken ?? undefined,
     },
   );

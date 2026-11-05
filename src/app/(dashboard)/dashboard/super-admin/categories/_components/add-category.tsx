@@ -106,11 +106,6 @@ export function AddCategoryModal({
   }
 
   const handleSubmit: SubmitHandler<TCreateCategoryType> = data => {
-    if (!data.mediaAttachment) {
-      toast.error('Category image is required.');
-      return;
-    }
-
     setLoading(true);
 
     startTransition(() => {
@@ -119,9 +114,9 @@ export function AddCategoryModal({
           const result = await createCategory({
             name: data.name.trim(),
             slug: data.slug.trim(),
-            image: data.mediaAttachment,
+            image: data.mediaAttachment || undefined,
             imageAlt: data.imageAlt?.trim() || undefined,
-            description: data.description?.trim() ?? '',
+            description: data.description?.trim() || undefined,
             accent: data.accent?.trim() || undefined,
             metaTitle: data.metaTitle?.trim() || undefined,
             metaDescription: data.metaDescription?.trim() || undefined,
