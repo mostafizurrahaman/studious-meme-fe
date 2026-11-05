@@ -25,7 +25,7 @@ type Props = {
 };
 
 export default async function AdminOrderDetailPage({ params }: Props) {
-  await requireDashboardRoles(['ADMIN', 'SUPER_ADMIN']);
+  await requireDashboardRoles(['ADMIN', 'SUPER_ADMIN', 'MODERATOR']);
   const { orderId } = await params;
   const result = await getOrderById(orderId).catch(() => null);
   const order = result?.data ?? null;

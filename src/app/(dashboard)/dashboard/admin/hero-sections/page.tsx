@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { DashboardHeroManager } from '@/components/dashboard/DashboardHeroManager';
 import { buildMetadata } from '@/lib/seo';
 import { requireDashboardRoles } from '@/lib/dashboard-auth';
-import { getAllHeroBanners } from '@/services/HeroSection';
+import { getAllHeroBanners, getAllHeroSections } from '@/services/HeroSection';
 
 export const metadata: Metadata = buildMetadata({
   title: 'Hero Banners',
@@ -14,9 +14,13 @@ export const metadata: Metadata = buildMetadata({
 export const dynamic = 'force-dynamic';
 
 export default async function AdminHeroSectionsPage() {
-  await requireDashboardRoles(['ADMIN', 'SUPER_ADMIN']);
-  const result = await getAllHeroBanners().catch(() => null);
-  const banners = result?.data ?? [];
+  await requireDashboardRoles(['ADMIN', 'SUPER_ADMIN', 'MODERATOR']);
+  const [bannersResult, heroesResult] = await Promise.all([
+    getAllHeroBanners().catch(() => null),
+    getAllHeroSections().catch(() => null),
+  ]);
+  const banners = bannersResult?.data ?? [];
+  const heroes = heroesResult?.data ?? [];
 
-  return <DashboardHeroManager initialBanners={banners} />;
+  return <DashboardHeroManager initialBanners={banners} heroes={heroes} />;
 }

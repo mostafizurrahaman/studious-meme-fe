@@ -229,6 +229,12 @@ export const createBrand = async (
   revalidatePath('/dashboard/super-admin/brands');
   return result;
 };
+export const toggleBrandActive = async (
+  slug: string,
+  isActive: boolean,
+): Promise<BackendEnvelope<BackendBrand>> => {
+  return updateBrand(slug, { isActive });
+};
 
 export const updateBrand = async (
   slug: string,

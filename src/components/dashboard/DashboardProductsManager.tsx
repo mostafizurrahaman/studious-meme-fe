@@ -15,8 +15,11 @@ import { toast } from 'sonner';
 import {
   Copy,
   ImagePlus,
+  Loader2,
   Pencil,
   Plus,
+  Power,
+  PowerOff,
   Trash2,
   UploadCloud,
   X,
@@ -48,8 +51,10 @@ import {
   deleteProduct,
   type BackendProduct,
   updateProduct,
+  toggleProductActive,
   getAdminProductDetails,
 } from '@/services/Product';
+import { cn } from '@/lib/utils';
 import { formatDashboardDate } from '@/lib/formatDate';
 import { slugify } from '@/lib/slug';
 import type { BackendCategory } from '@/services/Category/mappers';
@@ -134,6 +139,7 @@ type DashboardProductsManagerProps = {
   searchTerm?: string;
   brandOptions: Option[];
   categories: BackendCategory[];
+  canDelete?: boolean;
 };
 
 const productEditSchema = z.object({
@@ -685,6 +691,7 @@ export function DashboardProductsManager({
   searchTerm = '',
   brandOptions,
   categories,
+  canDelete = true,
 }: DashboardProductsManagerProps) {
   console.log(products?.[0]);
   const router = useRouter();
@@ -718,6 +725,37 @@ export function DashboardProductsManager({
   const editingProductImageInputRef = useRef<HTMLInputElement>(null);
   // Filter state
   const [search, setSearch] = useState(searchTerm);
+
+  useEffect(() => {
+    setSearch(searchTerm);
+  }, [searchTerm]);
+
+  const [togglingSlug, setTogglingSlug] = useState<string | null>(null);
+
+  const handleToggleProductActive = async (product: BackendProduct) => {
+    if (!product.slug || togglingSlug) return;
+    const nextActive = !product.isActive;
+    setTogglingSlug(product.slug);
+    try {
+      const result = await toggleProductActive(product.slug, nextActive);
+      if (!result?.success) {
+        toast.error(
+          result?.message ??
+            `Failed to ${nextActive ? 'activate' : 'deactivate'} product.`,
+        );
+        return;
+      }
+      refresh(
+        result.message ??
+          `Product ${nextActive ? 'activated' : 'deactivated'} successfully.`,
+        'success',
+      );
+    } catch {
+      toast.error('An unexpected error occurred while toggling product status.');
+    } finally {
+      setTogglingSlug(null);
+    }
+  };
 
   const productCreateForm = useForm<ProductCreateValues>({
     resolver: makeZodResolver(productCreateSchema),
@@ -1542,11 +1580,31 @@ export function DashboardProductsManager({
                           )}
                         </TableCell>
                         <TableCell className="min-w-0">
-                          <Badge
-                            variant={product.isActive ? 'default' : 'secondary'}
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={product.isActive ? 'default' : 'outline'}
+                            disabled={togglingSlug === product.slug || isPending}
+                            onClick={() => handleToggleProductActive(product)}
+                            className={cn(
+                              'h-7 px-2.5 text-xs font-semibold cursor-pointer transition-all',
+                              product.isActive
+                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-transparent'
+                                : 'border-destructive/40 text-destructive hover:bg-destructive/10'
+                            )}
+                            title={
+                              product.isActive
+                                ? 'Click to deactivate product'
+                                : 'Click to activate product'
+                            }
                           >
+                            {togglingSlug === product.slug ? (
+                              <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+                            ) : (
+                              <Power className="mr-1.5 size-3.5" />
+                            )}
                             {product.isActive ? 'Active' : 'Inactive'}
-                          </Badge>
+                          </Button>
                         </TableCell>
                         <TableCell className="min-w-0">
                           <Badge variant="secondary">
@@ -1672,25 +1730,55 @@ export function DashboardProductsManager({
                                 <Button
                                   size="sm"
                                   variant="outline"
+                                  disabled={
+                                    togglingSlug === product.slug || isPending
+                                  }
+                                  onClick={() =>
+                                    handleToggleProductActive(product)
+                                  }
+                                  title={
+                                    product.isActive
+                                      ? 'Deactivate product'
+                                      : 'Activate product'
+                                  }
+                                  className={
+                                    product.isActive
+                                      ? 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/20'
+                                      : 'text-muted-foreground hover:text-destructive hover:bg-destructive/10'
+                                  }
+                                >
+                                  {togglingSlug === product.slug ? (
+                                    <Loader2 className="size-4 animate-spin" />
+                                  ) : product.isActive ? (
+                                    <Power className="size-4 text-emerald-600" />
+                                  ) : (
+                                    <PowerOff className="size-4 text-destructive" />
+                                  )}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
                                   onClick={() => {
                                     startEditingProduct(product);
                                   }}
                                 >
                                   <Pencil className="size-4" />
                                 </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  disabled={isPending}
-                                  onClick={() =>
-                                    setPendingDeleteProduct({
-                                      slug: product.slug,
-                                      title: product.title,
-                                    })
-                                  }
-                                >
-                                  <Trash2 className="size-4" />
-                                </Button>
+                                {canDelete && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={isPending}
+                                    onClick={() =>
+                                      setPendingDeleteProduct({
+                                        slug: product.slug,
+                                        title: product.title,
+                                      })
+                                    }
+                                  >
+                                    <Trash2 className="size-4" />
+                                  </Button>
+                                )}
                               </>
                             )}
                           </div>

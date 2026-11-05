@@ -3,6 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useState, useTransition } from 'react';
 import { toast } from 'sonner';
+import { useUser } from '@/context/UserContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -61,6 +62,9 @@ export function DashboardUsersManager({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const { user: currentUser } = useUser();
+  const canManageUser =
+    currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN';
   const [pendingDeleteUser, setPendingDeleteUser] = useState<Pick<
     DashboardUserRecord,
     '_id' | 'name' | 'email'
@@ -239,37 +243,43 @@ export function DashboardUsersManager({
                   </span>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={isPending}
-                      onClick={() =>
-                        setPendingStatusUser({
-                          _id: user._id,
-                          name: user.name,
-                          email: user.email,
-                          nextIsActive: user.isActive === false,
-                        })
-                      }
-                    >
-                      {user.isActive === false ? 'Unblock' : 'Block'}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={isPending}
-                      onClick={() =>
-                        setPendingDeleteUser({
-                          _id: user._id,
-                          name: user.name,
-                          email: user.email,
-                        })
-                      }
-                    >
-                      Delete
-                    </Button>
-                  </div>
+                  {canManageUser ? (
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={isPending}
+                        onClick={() =>
+                          setPendingStatusUser({
+                            _id: user._id,
+                            name: user.name,
+                            email: user.email,
+                            nextIsActive: user.isActive === false,
+                          })
+                        }
+                      >
+                        {user.isActive === false ? 'Unblock' : 'Block'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={isPending}
+                        onClick={() =>
+                          setPendingDeleteUser({
+                            _id: user._id,
+                            name: user.name,
+                            email: user.email,
+                          })
+                        }
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">
+                      View only
+                    </span>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

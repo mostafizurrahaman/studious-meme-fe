@@ -13,8 +13,11 @@ import { toast } from 'sonner';
 import {
   ChevronDown,
   ImagePlus,
+  Loader2,
   Pencil,
   Plus,
+  Power,
+  PowerOff,
   Trash2,
   UploadCloud,
 } from 'lucide-react';
@@ -37,7 +40,10 @@ import {
   deleteCategory,
   deleteCategorySubCategory,
   updateCategorySubCategory,
+  toggleCategoryActive,
+  toggleSubCategoryActive,
 } from '@/services/Category';
+import { cn } from '@/lib/utils';
 import { slugify } from '@/lib/slug';
 import { formatDashboardDate } from '@/lib/formatDate';
 import Image from 'next/image';
@@ -81,6 +87,7 @@ export type CategoryRow = {
 
 type DashboardCategoriesManagerProps = {
   categories: CategoryRow[];
+  canDelete?: boolean;
 };
 
 function sliceText(value?: string, maxLength = 44) {
@@ -140,10 +147,7 @@ const categoryEditSchema = z.object({
     .string({ error: 'Category slug is required!' })
     .trim()
     .min(1, { message: 'Category slug is required!' }),
-  description: z
-    .string({ error: 'Category description is required!' })
-    .trim()
-    .min(1, { message: 'Category description is required!' }),
+  description: z.string().trim().optional().or(z.literal('')),
   accent: z.string().trim().optional(),
   metaTitle: z.string().trim().optional(),
   metaDescription: z.string().trim().optional(),
@@ -158,10 +162,7 @@ const subCategoryEditSchema = z.object({
     .string({ error: 'Sub-category slug is required!' })
     .trim()
     .min(1, { message: 'Sub-category slug is required!' }),
-  description: z
-    .string({ error: 'Sub-category description is required!' })
-    .trim()
-    .min(1, { message: 'Sub-category description is required!' }),
+  description: z.string().trim().optional().or(z.literal('')),
   accent: z.string().trim().optional(),
   isActive: z.boolean().default(true),
 });
@@ -177,6 +178,7 @@ function ErrorText({ message }: { message?: string }) {
 
 export function DashboardCategoriesManager({
   categories,
+  canDelete = true,
 }: DashboardCategoriesManagerProps) {
   // ** New lines:
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -192,6 +194,67 @@ export function DashboardCategoriesManager({
 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [togglingCategorySlug, setTogglingCategorySlug] = useState<string | null>(null);
+  const [togglingSubCategoryKey, setTogglingSubCategoryKey] = useState<string | null>(null);
+
+  const handleToggleCategoryActive = async (category: CategoryRow) => {
+    const identifier = category.slug || category._id;
+    if (!identifier || togglingCategorySlug) return;
+    const nextActive = category.isActive === false ? true : false;
+    setTogglingCategorySlug(identifier);
+    try {
+      const result = await toggleCategoryActive(identifier, nextActive);
+      if (!result?.success) {
+        toast.error(
+          result?.message ??
+            `Failed to ${nextActive ? 'activate' : 'deactivate'} category.`,
+        );
+        return;
+      }
+      refreshWithToast(
+        result.message ??
+          `Category ${nextActive ? 'activated' : 'deactivated'} successfully.`,
+        'success',
+      );
+    } catch {
+      toast.error('An unexpected error occurred while toggling category status.');
+    } finally {
+      setTogglingCategorySlug(null);
+    }
+  };
+
+  const handleToggleSubCategoryActive = async (
+    categorySlug: string,
+    subCategory: ISubCategory,
+  ) => {
+    const key = `${categorySlug}:${subCategory.slug}`;
+    if (!categorySlug || !subCategory.slug || togglingSubCategoryKey) return;
+    const nextActive = subCategory.isActive === false ? true : false;
+    setTogglingSubCategoryKey(key);
+    try {
+      const result = await toggleSubCategoryActive(
+        categorySlug,
+        subCategory.slug,
+        nextActive,
+      );
+      if (!result?.success) {
+        toast.error(
+          result?.message ??
+            `Failed to ${nextActive ? 'activate' : 'deactivate'} sub-category.`,
+        );
+        return;
+      }
+      refreshWithToast(
+        result.message ??
+          `Sub-category ${nextActive ? 'activated' : 'deactivated'} successfully.`,
+        'success',
+      );
+    } catch {
+      toast.error('An unexpected error occurred while toggling sub-category status.');
+    } finally {
+      setTogglingSubCategoryKey(null);
+    }
+  };
   const [newSlugAutoSync, setNewSlugAutoSync] = useState(true);
 
   const [editingSlugAutoSync, setEditingSlugAutoSync] = useState(true);
@@ -264,10 +327,7 @@ export function DashboardCategoriesManager({
           .string({ error: 'Category slug is required!' })
           .trim()
           .min(1, { message: 'Category slug is required!' }),
-        description: z
-          .string({ error: 'Category description is required!' })
-          .trim()
-          .min(1, { message: 'Category description is required!' }),
+        description: z.string().trim().optional().or(z.literal('')),
         accent: z.string().trim().optional(),
         metaTitle: z.string().trim().optional(),
         metaDescription: z.string().trim().optional(),
@@ -555,10 +615,6 @@ export function DashboardCategoriesManager({
       nextErrors.slug = 'Sub-category slug is required!';
     }
 
-    if (!payload?.description?.trim()) {
-      nextErrors.description = 'Sub-category description is required!';
-    }
-
     if (Object.keys(nextErrors).length > 0) {
       setNewSubCategoryErrors(current => ({
         ...current,
@@ -576,7 +632,7 @@ export function DashboardCategoriesManager({
       const result = await createCategorySubCategory(categorySlug, {
         name: payload.name.trim(),
         slug: payload.slug.trim(),
-        description: payload.description.trim(),
+        description: payload.description?.trim() || undefined,
         accent: payload.accent.trim() || undefined,
         image: subCategoryImageFiles[categorySlug] ?? undefined,
         isActive: true,
@@ -876,12 +932,59 @@ export function DashboardCategoriesManager({
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={category.isActive === false ? 'outline' : 'default'}
+                          disabled={togglingCategorySlug === (category.slug || category._id) || isPending}
+                          onClick={() => handleToggleCategoryActive(category)}
+                          className={cn(
+                            'h-7 px-2.5 text-xs font-semibold cursor-pointer transition-all',
+                            category.isActive === false
+                              ? 'border-destructive/40 text-destructive hover:bg-destructive/10'
+                              : 'bg-emerald-600 hover:bg-emerald-700 text-white border-transparent',
+                          )}
+                          title={
+                            category.isActive === false
+                              ? 'Click to activate category'
+                              : 'Click to deactivate category'
+                          }
+                        >
+                          {togglingCategorySlug === (category.slug || category._id) ? (
+                            <Loader2 className="mr-1.5 size-3 animate-spin" />
+                          ) : (
+                            <Power className="mr-1.5 size-3" />
+                          )}
                           {category.isActive === false ? 'Inactive' : 'Active'}
-                        </Badge>
+                        </Button>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={togglingCategorySlug === (category.slug || category._id) || isPending}
+                            onClick={() => handleToggleCategoryActive(category)}
+                            title={
+                              category.isActive === false
+                                ? 'Activate category'
+                                : 'Deactivate category'
+                            }
+                            className={
+                              category.isActive === false
+                                ? 'text-muted-foreground hover:text-destructive hover:bg-destructive/10'
+                                : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/20'
+                            }
+                          >
+                            {togglingCategorySlug === (category.slug || category._id) ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : category.isActive === false ? (
+                              <PowerOff className="size-4 text-destructive" />
+                            ) : (
+                              <Power className="size-4 text-emerald-600" />
+                            )}
+                          </Button>
                           <Button
                             type="button"
                             size="sm"
@@ -908,15 +1011,17 @@ export function DashboardCategoriesManager({
                             <Plus className="size-4" />
                           </Button>
 
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            disabled={isPending}
-                            onClick={() => requestDeleteCategory(category)}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
+                          {canDelete && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={isPending}
+                              onClick={() => requestDeleteCategory(category)}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1255,14 +1360,31 @@ export function DashboardCategoriesManager({
                                                   subCategory.description,
                                                 )}
                                               </div>
-                                              <Badge
-                                                variant="secondary"
-                                                className="w-fit"
+                                              <Button
+                                                type="button"
+                                                size="sm"
+                                                variant={subCategory.isActive === false ? 'outline' : 'default'}
+                                                disabled={togglingSubCategoryKey === `${category.slug}:${subCategory.slug}` || isPending}
+                                                onClick={() => handleToggleSubCategoryActive(category.slug ?? '', subCategory)}
+                                                className={cn(
+                                                  'h-7 px-2.5 text-xs font-semibold cursor-pointer transition-all w-fit',
+                                                  subCategory.isActive === false
+                                                    ? 'border-destructive/40 text-destructive hover:bg-destructive/10'
+                                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white border-transparent',
+                                                )}
+                                                title={
+                                                  subCategory.isActive === false
+                                                    ? 'Click to activate sub-category'
+                                                    : 'Click to deactivate sub-category'
+                                                }
                                               >
-                                                {subCategory.isActive === false
-                                                  ? 'Inactive'
-                                                  : 'Active'}
-                                              </Badge>
+                                                {togglingSubCategoryKey === `${category.slug}:${subCategory.slug}` ? (
+                                                  <Loader2 className="mr-1.5 size-3 animate-spin" />
+                                                ) : (
+                                                  <Power className="mr-1.5 size-3" />
+                                                )}
+                                                {subCategory.isActive === false ? 'Inactive' : 'Active'}
+                                              </Button>
                                             </>
                                           )}
                                         </div>
@@ -1375,6 +1497,31 @@ export function DashboardCategoriesManager({
                                           ) : (
                                             <>
                                               <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="outline"
+                                                disabled={togglingSubCategoryKey === `${category.slug}:${subCategory.slug}` || isPending}
+                                                onClick={() => handleToggleSubCategoryActive(category.slug ?? '', subCategory)}
+                                                title={
+                                                  subCategory.isActive === false
+                                                    ? 'Activate sub-category'
+                                                    : 'Deactivate sub-category'
+                                                }
+                                                className={
+                                                  subCategory.isActive === false
+                                                    ? 'text-muted-foreground hover:text-destructive hover:bg-destructive/10'
+                                                    : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/20'
+                                                }
+                                              >
+                                                {togglingSubCategoryKey === `${category.slug}:${subCategory.slug}` ? (
+                                                  <Loader2 className="size-4 animate-spin" />
+                                                ) : subCategory.isActive === false ? (
+                                                  <PowerOff className="size-4 text-destructive" />
+                                                ) : (
+                                                  <Power className="size-4 text-emerald-600" />
+                                                )}
+                                              </Button>
+                                              <Button
                                                 size="sm"
                                                 variant="outline"
                                                 disabled={isPending}
@@ -1394,20 +1541,22 @@ export function DashboardCategoriesManager({
                                               >
                                                 <Pencil className="size-4" />
                                               </Button>
-                                              <Button
-                                                size="sm"
-                                                variant="outline"
-                                                disabled={isPending}
-                                                onClick={() =>
-                                                  requestDeleteSubCategory(
-                                                    category.slug,
-                                                    subCategory.slug,
-                                                    subCategory.name,
-                                                  )
-                                                }
-                                              >
-                                                <Trash2 className="size-4" />
-                                              </Button>
+                                              {canDelete && (
+                                                <Button
+                                                  size="sm"
+                                                  variant="outline"
+                                                  disabled={isPending}
+                                                  onClick={() =>
+                                                    requestDeleteSubCategory(
+                                                      category.slug,
+                                                      subCategory.slug,
+                                                      subCategory.name,
+                                                    )
+                                                  }
+                                                >
+                                                  <Trash2 className="size-4" />
+                                                </Button>
+                                              )}
                                             </>
                                           )}
                                         </div>

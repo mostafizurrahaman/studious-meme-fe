@@ -1,4 +1,9 @@
-export const AUTH_ROLES = ['SUPER_ADMIN', 'ADMIN', 'USER'] as const;
+export const AUTH_ROLES = [
+  'SUPER_ADMIN',
+  'ADMIN',
+  'MODERATOR',
+  'USER',
+] as const;
 
 export type AuthRole = (typeof AUTH_ROLES)[number];
 

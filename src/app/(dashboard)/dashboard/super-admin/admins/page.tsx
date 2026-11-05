@@ -6,7 +6,7 @@ import { getAllAdmins } from '@/services/Admin';
 
 export const metadata: Metadata = buildMetadata({
   title: 'Admin management',
-  description: 'Create, update, and manage admin accounts.',
+  description: 'Create, update, and manage admin and moderator accounts.',
   path: '/dashboard/super-admin/admins',
   noindex: true,
 });
@@ -14,9 +14,14 @@ export const metadata: Metadata = buildMetadata({
 export const dynamic = 'force-dynamic';
 
 export default async function SuperAdminAdminsPage() {
-  await requireDashboardRoles(['SUPER_ADMIN']);
+  const user = await requireDashboardRoles(['SUPER_ADMIN']);
   const adminsResult = await getAllAdmins().catch(() => null);
   const admins = Array.isArray(adminsResult?.data) ? adminsResult.data : [];
 
-  return <DashboardAdminsManager admins={admins} />;
+  return (
+    <DashboardAdminsManager
+      admins={admins}
+      currentRole={user.role as 'ADMIN' | 'SUPER_ADMIN'}
+    />
+  );
 }

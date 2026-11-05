@@ -27,7 +27,7 @@ const parsePositiveInteger = (value: string | undefined, fallback: number) => {
 };
 
 export default async function AdminComparePage({ searchParams }: Props) {
-  await requireDashboardRoles(['ADMIN', 'SUPER_ADMIN']);
+  await requireDashboardRoles(['ADMIN', 'SUPER_ADMIN', 'MODERATOR']);
   const query = await searchParams;
   const page = parsePositiveInteger(query.page, 1);
   const limit = parsePositiveInteger(query.limit, 50);

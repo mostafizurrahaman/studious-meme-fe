@@ -189,14 +189,16 @@ export function DashboardAuditLogManager({
   const [selectedLog, setSelectedLog] = useState<BackendAuditLog | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      setPage(1);
-    }, 350);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+  const handleSearch = () => {
+    setDebouncedSearch(searchTerm);
+    setPage(1);
+  };
+
+  const handleClear = () => {
+    setSearchTerm('');
+    setDebouncedSearch('');
+    setPage(1);
+  };
 
   // Fetch logs on filter change
   const fetchLogs = useCallback(async () => {
@@ -369,23 +371,41 @@ export function DashboardAuditLogManager({
         <CardContent className="p-4 sm:p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search by admin name, email, description, path, or entity ID..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 text-sm"
-              />
-              {searchTerm && (
-                <button
-                  type="button"
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Clear
-                </button>
-              )}
+            <div className="flex flex-1 items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search by admin name, email, description, path, or entity ID..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSearch();
+                    }
+                  }}
+                  className="pl-9 text-sm"
+                />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleSearch}
+                title="Search"
+                aria-label="Search"
+              >
+                <Search className="size-4" />
+              </Button>
             </div>
 
             {/* Dropdowns */}

@@ -7,6 +7,7 @@ import {
   Eye,
   EyeOff,
   ImagePlus,
+  KeyRound,
   Pencil,
   ShieldPlus,
   Trash2,
@@ -32,7 +33,20 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { createUser, deleteAdmin, updateAdmin } from '@/services/Admin';
+import {
+  changeStaffPassword,
+  createUser,
+  deleteAdmin,
+  updateAdmin,
+} from '@/services/Admin';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { formatDashboardDate } from '@/lib/formatDate';
 import Image from 'next/image';
 import { dashboardFormSchemas, makeZodResolver } from '@/lib/form-validation';
@@ -42,6 +56,7 @@ type AdminRow = {
   _id?: string;
   name: string;
   email: string;
+  role?: string;
   phone?: string;
   image?: string;
   isActive?: boolean;
@@ -51,6 +66,7 @@ type AdminRow = {
 
 type DashboardAdminsManagerProps = {
   admins: AdminRow[];
+  currentRole?: 'ADMIN' | 'SUPER_ADMIN';
 };
 
 type AdminCreateValues = z.infer<typeof dashboardFormSchemas.admin>;
@@ -63,6 +79,7 @@ function ErrorText({ message }: { message?: string }) {
 
 export function DashboardAdminsManager({
   admins,
+  currentRole = 'SUPER_ADMIN',
 }: DashboardAdminsManagerProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -89,6 +106,16 @@ export function DashboardAdminsManager({
     AdminRow,
     '_id' | 'name' | 'email'
   > | null>(null);
+  const [passwordChangeStaff, setPasswordChangeStaff] = useState<Pick<
+    AdminRow,
+    '_id' | 'name' | 'email' | 'role'
+  > | null>(null);
+  const [newStaffPassword, setNewStaffPassword] = useState('');
+  const [confirmStaffPassword, setConfirmStaffPassword] = useState('');
+  const [showNewStaffPassword, setShowNewStaffPassword] = useState(false);
+  const [showConfirmStaffPassword, setShowConfirmStaffPassword] =
+    useState(false);
+  const [staffPasswordError, setStaffPasswordError] = useState('');
   const adminImageInputRef = useRef<HTMLInputElement>(null);
   const editingAdminImageInputRef = useRef<HTMLInputElement>(null);
 
@@ -100,7 +127,7 @@ export function DashboardAdminsManager({
       phone: '',
       password: '',
       confirmPassword: '',
-      role: 'ADMIN',
+      role: currentRole === 'ADMIN' ? 'MODERATOR' : 'ADMIN',
     },
     mode: 'onTouched',
   });
@@ -194,6 +221,27 @@ export function DashboardAdminsManager({
             />
             <ErrorText message={createForm.formState.errors.phone?.message} />
           </div>
+          {currentRole === 'ADMIN' ? (
+            <div className="grid gap-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Staff Role</label>
+              <div className="flex h-10 items-center rounded-md border border-input bg-muted/40 px-3 text-sm text-foreground">
+                <Badge variant="secondary" className="mr-2">MODERATOR</Badge>
+                <span className="text-xs text-muted-foreground">Moderator account</span>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Staff Role</label>
+              <select
+                {...createForm.register('role')}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="ADMIN">Admin</option>
+                <option value="MODERATOR">Moderator</option>
+              </select>
+              <ErrorText message={createForm.formState.errors.role?.message} />
+            </div>
+          )}
           <div className="self-start md:col-span-2">
             <div
               role="button"
@@ -312,7 +360,8 @@ export function DashboardAdminsManager({
                   email: values.email,
                   phone: values.phone,
                   password: values.password,
-                  image: adminImageFile,
+                  role: values.role,
+                  image: adminImageFile || undefined,
                 });
                 setIsCreating(false);
 
@@ -336,7 +385,13 @@ export function DashboardAdminsManager({
               className="gap-2"
             >
               <ShieldPlus className="size-4" />
-              {isCreating ? 'Creating admin...' : 'Create admin'}
+              {isCreating
+                ? currentRole === 'ADMIN'
+                  ? 'Creating moderator...'
+                  : 'Creating staff...'
+                : currentRole === 'ADMIN'
+                  ? 'Create moderator'
+                  : 'Create staff'}
             </Button>
           </div>
         </CardContent>
@@ -344,9 +399,9 @@ export function DashboardAdminsManager({
 
       <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>Admin list</CardTitle>
+          <CardTitle>{currentRole === 'ADMIN' ? 'Moderator list' : 'Staff list'}</CardTitle>
           <CardDescription>
-            {admins.length} admin accounts found.
+            {admins.length} {currentRole === 'ADMIN' ? 'moderator' : 'staff'} accounts found.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -356,6 +411,7 @@ export function DashboardAdminsManager({
                 <TableHead>Image</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead>Updated At</TableHead>
@@ -364,6 +420,13 @@ export function DashboardAdminsManager({
               </TableRow>
             </TableHeader>
             <TableBody>
+              {sortedAdmins.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="h-24 text-center">
+                    No {currentRole === 'ADMIN' ? 'moderator' : 'staff'} accounts found.
+                  </TableCell>
+                </TableRow>
+              ) : null}
               {sortedAdmins.map((admin) => {
                 const isEditing = editingId === admin._id;
 
@@ -484,6 +547,19 @@ export function DashboardAdminsManager({
                       ) : (
                         admin.email
                       )}
+                    </TableCell>
+                    <TableCell className="min-w-0">
+                      <Badge
+                        variant={
+                          admin.role === 'SUPER_ADMIN'
+                            ? 'default'
+                            : admin.role === 'MODERATOR'
+                              ? 'secondary'
+                              : 'outline'
+                        }
+                      >
+                        {admin.role || 'ADMIN'}
+                      </Badge>
                     </TableCell>
                     <TableCell className="min-w-0 whitespace-normal">
                       {isEditing ? (
@@ -615,21 +691,49 @@ export function DashboardAdminsManager({
                             >
                               <Pencil className="size-4" />
                             </Button>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              disabled={isPending || !admin._id}
-                              onClick={() =>
-                                setAdminPendingDelete({
-                                  _id: admin._id,
-                                  name: admin.name,
-                                  email: admin.email,
-                                })
-                              }
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
+                            {(currentRole === 'SUPER_ADMIN' ||
+                              (currentRole === 'ADMIN' &&
+                                admin.role === 'MODERATOR')) && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                title="Change Password"
+                                disabled={isPending || !admin._id}
+                                onClick={() => {
+                                  setPasswordChangeStaff({
+                                    _id: admin._id,
+                                    name: admin.name,
+                                    email: admin.email,
+                                    role: admin.role,
+                                  });
+                                  setNewStaffPassword('');
+                                  setConfirmStaffPassword('');
+                                  setStaffPasswordError('');
+                                  setShowNewStaffPassword(false);
+                                  setShowConfirmStaffPassword(false);
+                                }}
+                              >
+                                <KeyRound className="size-4" />
+                              </Button>
+                            )}
+                            {currentRole !== 'ADMIN' && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                disabled={isPending || !admin._id}
+                                onClick={() =>
+                                  setAdminPendingDelete({
+                                    _id: admin._id,
+                                    name: admin.name,
+                                    email: admin.email,
+                                  })
+                                }
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            )}
                           </>
                         )}
                       </div>
@@ -654,6 +758,160 @@ export function DashboardAdminsManager({
         } from the dashboard.`}
         confirmLabel="Delete admin"
       />
+      <Dialog
+        open={Boolean(passwordChangeStaff)}
+        onOpenChange={(open) => {
+          if (!open && !isPending) {
+            setPasswordChangeStaff(null);
+            setNewStaffPassword('');
+            setConfirmStaffPassword('');
+            setStaffPasswordError('');
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change Staff Password</DialogTitle>
+            <DialogDescription>
+              Set a new password for{' '}
+              <span className="font-semibold text-foreground">
+                {passwordChangeStaff?.name}
+              </span>{' '}
+              ({passwordChangeStaff?.role || 'Staff'}) —{' '}
+              {passwordChangeStaff?.email}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!passwordChangeStaff?._id) return;
+              if (!newStaffPassword || newStaffPassword.length < 6) {
+                setStaffPasswordError(
+                  'Password must be at least 6 characters long.',
+                );
+                return;
+              }
+              if (newStaffPassword.length > 20) {
+                setStaffPasswordError(
+                  'Password cannot exceed 20 characters.',
+                );
+                return;
+              }
+              if (newStaffPassword !== confirmStaffPassword) {
+                setStaffPasswordError('Passwords do not match.');
+                return;
+              }
+              setStaffPasswordError('');
+              const targetId = passwordChangeStaff._id;
+              startTransition(async () => {
+                const result = await changeStaffPassword(targetId, {
+                  password: newStaffPassword,
+                });
+                if (!result?.success) {
+                  toast.error(
+                    result?.message ?? 'Failed to update staff password.',
+                  );
+                  return;
+                }
+                toast.success(
+                  result.message ?? 'Staff password updated successfully.',
+                );
+                setPasswordChangeStaff(null);
+                setNewStaffPassword('');
+                setConfirmStaffPassword('');
+                router.refresh();
+              });
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-foreground">
+                New Password
+              </label>
+              <div className="relative">
+                <DashboardInput
+                  type={showNewStaffPassword ? 'text' : 'password'}
+                  value={newStaffPassword}
+                  onChange={(e) => {
+                    setNewStaffPassword(e.target.value);
+                    if (staffPasswordError) setStaffPasswordError('');
+                  }}
+                  placeholder="At least 6 characters"
+                  className="pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewStaffPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showNewStaffPassword ? (
+                    <EyeOff className="size-4" />
+                  ) : (
+                    <Eye className="size-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-foreground">
+                Confirm New Password
+              </label>
+              <div className="relative">
+                <DashboardInput
+                  type={showConfirmStaffPassword ? 'text' : 'password'}
+                  value={confirmStaffPassword}
+                  onChange={(e) => {
+                    setConfirmStaffPassword(e.target.value);
+                    if (staffPasswordError) setStaffPasswordError('');
+                  }}
+                  placeholder="Re-enter new password"
+                  className="pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmStaffPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showConfirmStaffPassword ? (
+                    <EyeOff className="size-4" />
+                  ) : (
+                    <Eye className="size-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {staffPasswordError && (
+              <p className="text-xs font-medium text-destructive">
+                {staffPasswordError}
+              </p>
+            )}
+
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isPending}
+                onClick={() => {
+                  setPasswordChangeStaff(null);
+                  setNewStaffPassword('');
+                  setConfirmStaffPassword('');
+                  setStaffPasswordError('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? 'Updating...' : 'Update Password'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

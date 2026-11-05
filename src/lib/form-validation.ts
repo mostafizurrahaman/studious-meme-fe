@@ -226,10 +226,7 @@ export const dashboardFormSchemas = {
         .min(1, {
           message: 'Confirm password is required!',
         }),
-      role: z
-        .string({ error: 'Role is required!' })
-        .trim()
-        .min(1, { message: 'Role is required!' }),
+      role: z.enum(['ADMIN', 'MODERATOR']).default('MODERATOR'),
     })
     .superRefine(({ password, confirmPassword }, ctx) => {
       if (password !== confirmPassword) {
@@ -243,13 +240,13 @@ export const dashboardFormSchemas = {
   category: z.object({
     name: requiredText('Category name', 1),
     slug: requiredText('Category slug', 1),
-    description: requiredText('Category description', 1),
+    description: optionalText(),
     accent: optionalText(),
   }),
   brand: z.object({
     name: requiredText('Brand name', 3),
     slug: requiredText('Brand slug', 3),
-    description: requiredText('Brand description', 1),
+    description: optionalText(),
     imageAlt: z.string().trim().optional().or(z.literal('')),
     isActive: z.boolean().default(true),
   }),

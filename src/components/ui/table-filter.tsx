@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { X } from 'lucide-react';
-import { useDebouncedCallback } from 'use-debounce';
+import { useState, useEffect } from 'react';
+import { Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -18,37 +17,60 @@ export function TableFilter({
   value,
   onChange,
   placeholder = 'Search...',
-  className,
-  debounceMs = 500,
+  className = '',
 }: TableFilterProps) {
   const [inputValue, setInputValue] = useState(value);
-  const debouncedChange = useDebouncedCallback(onChange, debounceMs);
+
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
+
+  const handleSearch = () => {
+    onChange(inputValue);
+  };
+
+  const handleClear = () => {
+    setInputValue('');
+    onChange('');
+  };
 
   return (
-    <div className={`flex gap-2 ${className}`}>
-      <Input
-        value={inputValue}
-        onChange={(e) => {
-          const nextValue = e.target.value;
-          setInputValue(nextValue);
-          debouncedChange(nextValue);
-        }}
-        placeholder={placeholder}
-        className="flex-1"
-      />
-      {inputValue && (
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          onClick={() => {
-            setInputValue('');
-            onChange('');
+    <div className={`flex items-center gap-2 ${className}`}>
+      <div className="relative flex-1">
+        <Input
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleSearch();
+            }
           }}
-        >
-          <X className="size-4" />
-        </Button>
-      )}
+          placeholder={placeholder}
+          className={`flex-1 ${inputValue ? 'pr-8' : ''}`}
+        />
+        {inputValue && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded-sm"
+            title="Clear search"
+            aria-label="Clear search"
+          >
+            <X className="size-4" />
+          </button>
+        )}
+      </div>
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        onClick={handleSearch}
+        title="Search"
+        aria-label="Search"
+      >
+        <Search className="size-4" />
+      </Button>
     </div>
   );
 }

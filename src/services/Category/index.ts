@@ -167,24 +167,28 @@ export const createCategory = async (
 
 export const updateCategory = async (
   id: string,
-  payload: CategoryMutationPayload,
+  payload: Partial<CategoryMutationPayload>,
 ): Promise<BackendEnvelope<unknown>> => {
   const accessToken = await getValidAccessTokenForServerActions();
+  const nextSlug = payload.slug
+    ? slugify(payload.slug)
+    : payload.name
+      ? slugify(payload.name)
+      : undefined;
   const result = await requestBackendJson<BackendEnvelope<unknown>>(
     `/category/categories/${id}`,
     {
       method: 'PATCH',
       body: toFormData({
-        name: payload.name.trim(),
-        slug: slugify(payload.slug ?? payload.name),
-        image: payload.image,
-        description: payload.description,
-        metaTitle: payload.metaTitle,
-
-        metaDescription: payload.metaDescription,
-        imageAlt: payload.imageAlt,
-        accent: payload.accent,
-        isActive: payload.isActive,
+        ...(payload.name ? { name: payload.name.trim() } : {}),
+        ...(nextSlug ? { slug: nextSlug } : {}),
+        ...(payload.image !== undefined ? { image: payload.image } : {}),
+        ...(payload.description !== undefined ? { description: payload.description } : {}),
+        ...(payload.metaTitle !== undefined ? { metaTitle: payload.metaTitle } : {}),
+        ...(payload.metaDescription !== undefined ? { metaDescription: payload.metaDescription } : {}),
+        ...(payload.imageAlt !== undefined ? { imageAlt: payload.imageAlt } : {}),
+        ...(payload.accent !== undefined ? { accent: payload.accent } : {}),
+        ...(payload.isActive !== undefined ? { isActive: payload.isActive } : {}),
       }),
       token: accessToken ?? undefined,
     },
@@ -196,9 +200,18 @@ export const updateCategory = async (
   revalidatePath('/dashboard/admin/categories');
   revalidatePath('/dashboard/super-admin/categories');
   revalidatePath(`/category/${id}`);
-  revalidatePath(`/category/${payload.slug}`);
+  if (nextSlug) {
+    revalidatePath(`/category/${nextSlug}`);
+  }
 
   return result;
+};
+
+export const toggleCategoryActive = async (
+  slugOrId: string,
+  isActive: boolean,
+): Promise<BackendEnvelope<unknown>> => {
+  return updateCategory(slugOrId, { isActive });
 };
 
 export const deleteCategory = async (
@@ -266,6 +279,13 @@ export const updateCategorySubCategory = async (
 
   revalidatePath(`/category/${categorySlug}/${subCategorySlug}`);
   return result;
+};
+export const toggleSubCategoryActive = async (
+  categorySlug: string,
+  subCategorySlug: string,
+  isActive: boolean,
+): Promise<BackendEnvelope<unknown>> => {
+  return updateCategorySubCategory(categorySlug, subCategorySlug, { isActive });
 };
 
 export const deleteCategorySubCategory = async (

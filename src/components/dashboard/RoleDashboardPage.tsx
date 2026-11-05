@@ -282,7 +282,12 @@ export async function RoleDashboardPage({ role }: { role: AuthRole }) {
           </Button>
           {role === 'SUPER_ADMIN' ? (
             <Button asChild variant="outline" className="justify-start">
-              <Link href="/dashboard/super-admin/admins">Manage admins</Link>
+              <Link href="/dashboard/super-admin/admins">Manage staff</Link>
+            </Button>
+          ) : null}
+          {role === 'ADMIN' ? (
+            <Button asChild variant="outline" className="justify-start">
+              <Link href="/dashboard/admin/moderators">Manage moderators</Link>
             </Button>
           ) : null}
           <Button asChild variant="outline" className="justify-start">

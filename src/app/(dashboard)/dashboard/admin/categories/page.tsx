@@ -14,7 +14,7 @@ export const metadata: Metadata = buildMetadata({
 export const dynamic = 'force-dynamic';
 
 export default async function AdminCategoriesPage() {
-  await requireDashboardRoles(['ADMIN', 'SUPER_ADMIN']);
+  const user = await requireDashboardRoles(['ADMIN', 'SUPER_ADMIN', 'MODERATOR']);
   const categoriesResult = await getAllCategories().catch(() => null);
   const categories = Array.isArray(categoriesResult?.data)
     ? (categoriesResult.data as Array<{
@@ -26,5 +26,10 @@ export default async function AdminCategoriesPage() {
       }>)
     : [];
 
-  return <DashboardCategoriesManager categories={categories} />;
+  return (
+    <DashboardCategoriesManager
+      categories={categories}
+      canDelete={user.role !== 'MODERATOR'}
+    />
+  );
 }

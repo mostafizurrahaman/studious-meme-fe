@@ -14,7 +14,7 @@ export const metadata: Metadata = buildMetadata({
 export const dynamic = 'force-dynamic';
 
 export default async function AdminAuditLogsPage() {
-  await requireDashboardRoles(['ADMIN', 'SUPER_ADMIN']);
+  await requireDashboardRoles(['ADMIN', 'SUPER_ADMIN', 'MODERATOR']);
 
   const [logsRes, statsRes] = await Promise.all([
     getAuditLogs({ page: 1, limit: 20 }).catch(() => null),

@@ -511,6 +511,12 @@ export const updateProduct = async (
 
   return result;
 };
+export const toggleProductActive = async (
+  slug: string,
+  isActive: boolean,
+): Promise<BackendEnvelope<BackendProduct>> => {
+  return updateProduct(slug, { isActive });
+};
 
 export const deleteProduct = async (
   slug: string,

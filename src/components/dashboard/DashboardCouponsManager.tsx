@@ -7,6 +7,7 @@ import type { SubmitHandler, UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import { Loader2, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useUser } from '@/context/UserContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -410,6 +411,8 @@ export function DashboardCouponsManager({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { user } = useUser();
+  const canDelete = user?.role !== 'MODERATOR';
   const [isPending, startTransition] = useTransition();
   const [couponRows, setCouponRows] = useState(coupons);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
