@@ -24,6 +24,20 @@ export const siteConfig = {
   ogImage: process.env.NEXT_PUBLIC_SITE_OG_IMAGE?.trim() || '/logo.png',
   googleVerification:
     process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim() || '',
+  socials: {
+    facebook: 'https://www.facebook.com/malamal.com.bd',
+    youtube: 'https://www.youtube.com/@malamalxyz',
+    tiktok: 'https://www.tiktok.com/@malamal.bangladesh',
+    instagram: 'https://www.instagram.com/malamalbd',
+    linkedin:
+      'https://www.linkedin.com/company/malamal-xyz-co/?originalSubdomain=bd',
+  },
+  apps: {
+    googlePlay:
+      'https://play.google.com/store/apps/details?id=bd.com.malamal&pcampaignid=web_share',
+    appStore: 'https://apps.apple.com/app/malamal/id6470000000',
+    appGallery: 'https://appgallery.huawei.com/app/C100000000',
+  },
 };
 
 type AboutSection = {
@@ -560,8 +574,11 @@ export const organizationSchema = {
     },
   ],
   sameAs: [
-    'https://www.facebook.com/malamal.com.bd',
-    'https://www.youtube.com/@malamalxyz',
+    siteConfig.socials.facebook,
+    siteConfig.socials.youtube,
+    siteConfig.socials.instagram,
+    siteConfig.socials.linkedin,
+    siteConfig.socials.tiktok,
   ],
 };
 

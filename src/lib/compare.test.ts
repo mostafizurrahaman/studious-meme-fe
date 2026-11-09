@@ -8,6 +8,55 @@ import {
 } from './compare';
 
 describe('compare helpers', () => {
+  it('maps compare history snapshots with images array into storefront products', () => {
+    const product = comparisonHistoryRecordToProduct({
+      _id: 'record-images-array',
+      product: 'product-array',
+      productSnapshot: {
+        title: 'Industrial Drill',
+        brand: 'Bosch',
+        category: 'Power Tools',
+        categorySlug: 'power-tools',
+        subCategorySlug: 'drills',
+        images: [
+          'https://example.com/drill1.jpg',
+          'https://example.com/drill2.jpg',
+        ],
+        sku: 'DRILL-001',
+        slug: 'industrial-drill',
+        price: 12000,
+        stock: 5,
+        rating: 4.9,
+        oldPrice: 14000,
+        isFeatured: true,
+        weightKg: 3.5,
+        isNoCOD: true,
+      },
+    });
+
+    expect(product).toEqual({
+      id: 'product-array',
+      title: 'Industrial Drill',
+      slug: 'industrial-drill',
+      href: '/shop',
+      images: [
+        'https://example.com/drill1.jpg',
+        'https://example.com/drill2.jpg',
+      ],
+      price: '12000',
+      oldPrice: '14000',
+      brand: 'Bosch',
+      sku: 'DRILL-001',
+      stock: '5 in stock',
+      rating: '4.9',
+      category: 'Power Tools',
+      categorySlug: 'power-tools',
+      isFeatured: true,
+      isNoCOD: true,
+      weightKg: 3.5,
+    });
+  });
+
   it('maps compare history snapshots into storefront products', () => {
     const product = comparisonHistoryRecordToProduct({
       _id: 'record-1',

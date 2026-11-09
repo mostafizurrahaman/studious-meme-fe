@@ -4,6 +4,10 @@ import { Container } from '@/components/Container';
 import { contactChannels } from '@/lib/static-site-content';
 import { siteConfig } from '@/lib/seo';
 import type { Brand, Category } from '@/lib/storefront-types';
+import {
+  FooterAppDownloadAndSocial,
+  SocialIconList,
+} from '@/components/FooterSocialAndApps';
 
 type Props = {
   categories: Category[];
@@ -47,6 +51,13 @@ export function Footer({ categories, brands }: Props) {
               >
                 B2B Sales & WhatsApp Number: +8801972525821
               </a>
+            </div>
+
+            <div className="mt-6">
+              <span className="block text-xs font-bold tracking-wider text-secondary-foreground/90 uppercase">
+                Follow Us
+              </span>
+              <SocialIconList className="mt-3" />
             </div>
           </div>
 
@@ -148,6 +159,14 @@ export function Footer({ categories, brands }: Props) {
                   key={channel.label}
                   className="hover:text-secondary-foreground"
                   href={channel.href}
+                  target={
+                    channel.href.startsWith('http') ? '_blank' : undefined
+                  }
+                  rel={
+                    channel.href.startsWith('http')
+                      ? 'noopener noreferrer'
+                      : undefined
+                  }
                 >
                   {channel.label}: {channel.value}
                 </a>
@@ -167,9 +186,35 @@ export function Footer({ categories, brands }: Props) {
           </div>
         </div>
 
+        <FooterAppDownloadAndSocial />
+
         <Separator className="bg-white/15" />
-        <div className="py-6 text-xs text-secondary-foreground/70">
-          © {new Date().getFullYear()} {siteConfig.name}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-6 text-xs text-secondary-foreground/75">
+          <div>
+            © {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-secondary-foreground/80">
+            <Link
+              href="/privacy-policy"
+              className="transition hover:text-white"
+            >
+              Privacy Policy
+            </Link>
+            <span>•</span>
+            <Link
+              href="/terms-and-conditions"
+              className="transition hover:text-white"
+            >
+              Terms & Conditions
+            </Link>
+            <span>•</span>
+            <Link
+              href="/return-policy"
+              className="transition hover:text-white"
+            >
+              Return Policy
+            </Link>
+          </div>
         </div>
       </Container>
     </footer>

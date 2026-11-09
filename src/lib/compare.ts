@@ -24,12 +24,46 @@ export function comparisonHistoryRecordToProduct(
     return null;
   }
 
+  const rawImages: string[] = [];
+
+  if (Array.isArray(snapshot.images)) {
+    for (const img of snapshot.images) {
+      if (typeof img === 'string' && img.trim().length > 0) {
+        rawImages.push(img.trim());
+      }
+    }
+  }
+
+  if (
+    rawImages.length === 0 &&
+    typeof snapshot.image === 'string' &&
+    snapshot.image.trim().length > 0
+  ) {
+    rawImages.push(snapshot.image.trim());
+  }
+
+  if (
+    rawImages.length === 0 &&
+    typeof record.product === 'object' &&
+    record.product !== null &&
+    'images' in record.product
+  ) {
+    const productImages = (record.product as { images?: unknown }).images;
+    if (Array.isArray(productImages)) {
+      for (const img of productImages) {
+        if (typeof img === 'string' && img.trim().length > 0) {
+          rawImages.push(img.trim());
+        }
+      }
+    }
+  }
+
   return {
     id: getComparisonHistoryProductId(record) ?? undefined,
     title: snapshot.title,
     slug: snapshot.slug,
     href: '/shop',
-    images: [snapshot.image],
+    images: rawImages.length > 0 ? rawImages : ['/icon.png'],
     price: String(snapshot.price),
     oldPrice:
       snapshot.oldPrice === undefined ? undefined : String(snapshot.oldPrice),
