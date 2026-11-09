@@ -29,8 +29,18 @@ export type StorefrontProduct = {
 
 export type Product = StorefrontProduct;
 
-export function getProductPrimaryImage(product: Pick<Product, 'images'>) {
-  return product.images[0] ?? '/icon.png';
+export function getProductPrimaryImage(
+  product: { images?: (string | undefined | null)[] } | null | undefined,
+): string {
+  if (product && Array.isArray(product.images)) {
+    const validImage = product.images.find(
+      (img): img is string => typeof img === 'string' && img.trim().length > 0,
+    );
+    if (validImage) {
+      return validImage;
+    }
+  }
+  return '/icon.png';
 }
 
 export type StorefrontCategory = {

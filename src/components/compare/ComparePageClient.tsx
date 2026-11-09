@@ -122,19 +122,27 @@ export function ComparePageClient({ authenticated, initialProducts }: Props) {
                   className="w-72 shrink-0 overflow-hidden border-border shadow-sm sm:w-80"
                 >
                   <CardContent className="flex h-full flex-col p-4">
-                    <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
+                    <Link
+                      href={`/product/${product.slug}`}
+                      className="relative block aspect-square overflow-hidden rounded-2xl bg-muted group/img"
+                    >
                       <Image
                         src={getProductPrimaryImage(product)}
                         alt={product.imageAlt?.[0] || product.title}
                         title={product.title}
                         fill
                         sizes="(max-width: 768px) 100vw, 288px"
-                        className="object-contain p-3"
+                        className="object-contain p-3 transition duration-300 group-hover/img:scale-105"
                       />
-                    </div>
+                    </Link>
                     <div className="mt-4 space-y-2">
                       <h2 className="line-clamp-2 text-base font-bold text-secondary">
-                        {product.title}
+                        <Link
+                          href={`/product/${product.slug}`}
+                          className="transition hover:text-primary"
+                        >
+                          {product.title}
+                        </Link>
                       </h2>
                       <div className="text-sm text-foreground/60">
                         Brand: {product.brand}

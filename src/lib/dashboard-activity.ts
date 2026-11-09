@@ -13,7 +13,8 @@ export type DashboardActivityProductSnapshot = {
   brand: string;
   category?: string;
   categorySlug?: string;
-  image: string;
+  image?: string;
+  images?: string[];
   sku: string;
   slug?: string;
   price?: number;
@@ -191,6 +192,32 @@ export function buildDashboardActivityCards(
       const existing = groups.get(key);
 
       if (!existing) {
+        let cardImage = '/icon.png';
+        if (Array.isArray(snapshot.images) && snapshot.images.length > 0) {
+          const firstValid = snapshot.images.find(
+            (img) => typeof img === 'string' && img.trim().length > 0,
+          );
+          if (firstValid) cardImage = firstValid;
+        } else if (
+          typeof snapshot.image === 'string' &&
+          snapshot.image.trim().length > 0
+        ) {
+          cardImage = snapshot.image.trim();
+        } else if (
+          typeof record.product === 'object' &&
+          record.product !== null &&
+          'images' in record.product
+        ) {
+          const prodImages = (record.product as { images?: unknown }).images;
+          if (Array.isArray(prodImages)) {
+            const firstValid = prodImages.find(
+              (img): img is string =>
+                typeof img === 'string' && img.trim().length > 0,
+            );
+            if (firstValid) cardImage = firstValid;
+          }
+        }
+
         groups.set(key, {
           card: {
             id: key,
@@ -204,7 +231,7 @@ export function buildDashboardActivityCards(
             brand: snapshot.brand,
             sku: snapshot.sku,
             slug: snapshot.slug,
-            image: snapshot.image,
+            image: cardImage,
             category: snapshot.category,
             categorySlug: snapshot.categorySlug,
             addedAt:

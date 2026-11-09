@@ -26,7 +26,8 @@ export type ComparisonHistoryRecord = {
     category: string;
     categorySlug?: string;
     subCategorySlug?: string;
-    image: string;
+    images?: string[];
+    image?: string;
     sku: string;
     slug: string;
     price: number;
