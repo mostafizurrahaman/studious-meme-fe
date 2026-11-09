@@ -19,7 +19,8 @@ export const siteConfig = {
   phone: '+880 9638212121',
   email: 'sales@malamal.com.bd',
   supportEmail: 'info@malamal.com.bd',
-  address: 'Level 11 & 12, Medona Tower, 28, Mohakhali C/A, Dhaka-1212.',
+  // address: 'Level 11 & 12, Medona Tower, 28, Mohakhali C/A, Dhaka-1212.',
+  address: '2nd Floor 100-103, 1100 Nawabpur Rd, Dhaka 1100',
   ogImage: process.env.NEXT_PUBLIC_SITE_OG_IMAGE?.trim() || '/logo.png',
   googleVerification:
     process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim() || '',
@@ -84,12 +85,12 @@ export const siteFullDescription = siteAboutSections
 
 export function absoluteUrl(path: string) {
   const url = new URL(path, siteConfig.url).toString();
-  
+
   // Don't append trailing slash to file extensions or non-site domains
   if (url.includes('.') && !url.includes(siteConfig.url.replace('https://', ''))) {
     return url;
   }
-  
+
   // Avoid appending trailing slashes to image/file paths
   if (url.match(/\.(png|jpe?g|webp|svg|xml|txt|ico|json)$/i)) {
     return url;
@@ -614,13 +615,13 @@ export function buildHomeSchemas(input?: {
     buildBreadcrumbSchema([{ name: 'Home', url: '/' }]),
     ...(items.length
       ? [
-          buildCollectionSchema(
-            'Malamal Home',
-            'Browse top categories, trusted brands and featured store sections.',
-            '/',
-            items,
-          ),
-        ]
+        buildCollectionSchema(
+          'Malamal Home',
+          'Browse top categories, trusted brands and featured store sections.',
+          '/',
+          items,
+        ),
+      ]
       : []),
   ];
 }
@@ -1020,57 +1021,57 @@ export function buildProductSchemas(
   const offer =
     Number.isFinite(currentPrice) && currentPrice > 0
       ? {
-          '@type': 'Offer',
-          url,
-          priceCurrency: 'BDT',
-          price: currentPrice,
-          priceValidUntil: dynamicValidUntil,
-          validFrom,
-          availability: isInStockLabel(product.stock)
-            ? 'https://schema.org/InStock'
-            : 'https://schema.org/OutOfStock',
-          itemCondition: 'https://schema.org/NewCondition',
-          seller: {
-            '@type': 'Organization',
-            name: siteConfig.name,
-            '@id': `${siteConfig.url}/#organization`,
+        '@type': 'Offer',
+        url,
+        priceCurrency: 'BDT',
+        price: currentPrice,
+        priceValidUntil: dynamicValidUntil,
+        validFrom,
+        availability: isInStockLabel(product.stock)
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+        itemCondition: 'https://schema.org/NewCondition',
+        seller: {
+          '@type': 'Organization',
+          name: siteConfig.name,
+          '@id': `${siteConfig.url}/#organization`,
+        },
+        shippingDetails: {
+          '@type': 'OfferShippingDetails',
+          shippingRate: {
+            '@type': 'MonetaryAmount',
+            value: '100',
+            currency: 'BDT',
           },
-          shippingDetails: {
-            '@type': 'OfferShippingDetails',
-            shippingRate: {
-              '@type': 'MonetaryAmount',
-              value: '100',
-              currency: 'BDT',
+          shippingDestination: {
+            '@type': 'DefinedRegion',
+            addressCountry: 'BD',
+          },
+          deliveryTime: {
+            '@type': 'ShippingDeliveryTime',
+            handlingTime: {
+              '@type': 'QuantitativeValue',
+              minValue: 0,
+              maxValue: 1,
+              unitCode: 'DAY'
             },
-            shippingDestination: {
-              '@type': 'DefinedRegion',
-              addressCountry: 'BD',
-            },
-            deliveryTime: {
-              '@type': 'ShippingDeliveryTime',
-              handlingTime: {
-                '@type': 'QuantitativeValue',
-                minValue: 0,
-                maxValue: 1,
-                unitCode: 'DAY'
-              },
-              transitTime: {
-                '@type': 'QuantitativeValue',
-                minValue: 1,
-                maxValue: 3,
-                unitCode: 'DAY'
-              }
+            transitTime: {
+              '@type': 'QuantitativeValue',
+              minValue: 1,
+              maxValue: 3,
+              unitCode: 'DAY'
             }
-          },
-          hasMerchantReturnPolicy: {
-            '@type': 'MerchantReturnPolicy',
-            applicableCountry: 'BD',
-            returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-            merchantReturnDays: 3,
-            returnMethod: 'https://schema.org/ReturnByMail',
-            returnFees: 'https://schema.org/FreeReturn'
           }
+        },
+        hasMerchantReturnPolicy: {
+          '@type': 'MerchantReturnPolicy',
+          applicableCountry: 'BD',
+          returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+          merchantReturnDays: 3,
+          returnMethod: 'https://schema.org/ReturnByMail',
+          returnFees: 'https://schema.org/FreeReturn'
         }
+      }
       : undefined;
 
   const numRating =
@@ -1083,19 +1084,19 @@ export function buildProductSchemas(
   const aggregateRating =
     reviewCount > 0 && numRating > 0
       ? {
-          '@type': 'AggregateRating',
-          ratingValue: Number(numRating.toFixed(1)),
-          reviewCount,
-          bestRating: '5',
-          worstRating: '1',
-        }
+        '@type': 'AggregateRating',
+        ratingValue: Number(numRating.toFixed(1)),
+        reviewCount,
+        bestRating: '5',
+        worstRating: '1',
+      }
       : {
-          '@type': 'AggregateRating',
-          ratingValue: 5,
-          reviewCount: 1,
-          bestRating: '5',
-          worstRating: '1',
-        };
+        '@type': 'AggregateRating',
+        ratingValue: 5,
+        reviewCount: 1,
+        bestRating: '5',
+        worstRating: '1',
+      };
 
   const defaultReview = [
     {
@@ -1120,29 +1121,29 @@ export function buildProductSchemas(
   const formattedReviews =
     reviews && reviews.length > 0
       ? reviews.slice(0, 10).map(r => ({
-          '@type': 'Review',
-          author: {
-            '@type': 'Person',
-            name: r.userName || r.user?.name || 'Verified Customer',
-          },
-          datePublished: r.createdAt || new Date().toISOString(),
-          reviewRating: {
-            '@type': 'Rating',
-            ratingValue: r.rating || 5,
-            bestRating: '5',
-            worstRating: '1',
-          },
-          reviewBody:
-            stripHtml(r.comment || r.review || '') ||
-            'Verified purchase review.',
-        }))
+        '@type': 'Review',
+        author: {
+          '@type': 'Person',
+          name: r.userName || r.user?.name || 'Verified Customer',
+        },
+        datePublished: r.createdAt || new Date().toISOString(),
+        reviewRating: {
+          '@type': 'Rating',
+          ratingValue: r.rating || 5,
+          bestRating: '5',
+          worstRating: '1',
+        },
+        reviewBody:
+          stripHtml(r.comment || r.review || '') ||
+          'Verified purchase review.',
+      }))
       : defaultReview;
 
   const rawDescription =
     product.description || product.features
       ? [product.description, product.features].filter(Boolean).join(' ')
       : `${product.title} available from ${product.brand} on ${siteConfig.name}.`;
-  
+
   let cleanDescription = stripHtml(rawDescription);
   if (cleanDescription.length > 4999) {
     cleanDescription = cleanDescription.slice(0, 4996) + '...';
@@ -1153,29 +1154,29 @@ export function buildProductSchemas(
   const youtubeId = product.youtubeVideoId?.trim();
   const videoObject = youtubeId
     ? {
-        '@context': 'https://schema.org',
-        '@type': 'VideoObject',
-        name: product.title,
-        description: cleanDescription,
-        thumbnailUrl: [
-          `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`,
-          absoluteUrl(primaryImage),
-        ],
-        embedUrl: `https://www.youtube.com/embed/${youtubeId}`,
-        contentUrl:
-          product.youtubeVideoUrl?.trim() ||
-          `https://www.youtube.com/watch?v=${youtubeId}`,
-        uploadDate: product.createdAt
-          ? new Date(product.createdAt).toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0],
-        publisher: {
-          '@type': 'Organization',
-          name: siteConfig.name,
-          '@id': `${siteConfig.url}/#organization`,
-        },
-      }
+      '@context': 'https://schema.org',
+      '@type': 'VideoObject',
+      name: product.title,
+      description: cleanDescription,
+      thumbnailUrl: [
+        `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`,
+        absoluteUrl(primaryImage),
+      ],
+      embedUrl: `https://www.youtube.com/embed/${youtubeId}`,
+      contentUrl:
+        product.youtubeVideoUrl?.trim() ||
+        `https://www.youtube.com/watch?v=${youtubeId}`,
+      uploadDate: product.createdAt
+        ? new Date(product.createdAt).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0],
+      publisher: {
+        '@type': 'Organization',
+        name: siteConfig.name,
+        '@id': `${siteConfig.url}/#organization`,
+      },
+    }
     : undefined;
-    
+
   const validSku = (product.sku && typeof product.sku === 'string' && product.sku.trim().length > 0) ? product.sku : product.slug;
 
   return [
