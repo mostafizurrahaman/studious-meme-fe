@@ -42,7 +42,7 @@ export default function OurContactsPage() {
 
           <section className="mt-6 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
             <Card className="border-0 bg-secondary p-6 text-secondary-foreground shadow-sm">
-              <h2 className="text-2xl font-black">Office</h2>
+              <h2 className="text-2xl font-black">Registered Office</h2>
               <p className="mt-3 max-w-xl text-sm leading-7 text-secondary-foreground/78">
                 {siteConfig.address}
               </p>
