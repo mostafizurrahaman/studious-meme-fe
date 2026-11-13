@@ -25,7 +25,7 @@ export const siteConfig = {
   googleVerification:
     process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim() || '',
   socials: {
-    facebook: 'https://www.facebook.com/malamal.com.bd',
+    facebook: 'https://www.facebook.com/malamalxyz/',
     youtube: 'https://www.youtube.com/@malamalxyz',
     tiktok: 'https://www.tiktok.com/@malamal.bangladesh',
     instagram: 'https://www.instagram.com/malamalbd',
@@ -550,9 +550,9 @@ export const organizationSchema = {
   description: siteConfig.description,
   address: {
     '@type': 'PostalAddress',
-    streetAddress: 'Level 11 & 12, Medona Tower, 28, Mohakhali C/A',
+    streetAddress: '2nd Floor 100-103, 1100 Nawabpur Rd',
     addressLocality: 'Dhaka',
-    postalCode: '1212',
+    postalCode: '1100',
     addressCountry: 'BD',
   },
   contactPoint: [
