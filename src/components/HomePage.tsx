@@ -15,6 +15,7 @@ import {
 import { ProductCard } from '@/components/ProductCard';
 import { SectionHeading } from '@/components/SectionHeading';
 import { HomeHeroCarousel } from '@/components/HomeHeroCarousel';
+import { stripHtml } from '@/lib/seo';
 import dynamic from 'next/dynamic';
 
 const HomeAboutSection = dynamic(() =>
@@ -284,8 +285,12 @@ export async function HomePage({ heroContent }: HomePageProps) {
                             {card.name}
                           </div>
                           <p className="mt-2 text-sm leading-6 text-foreground/65">
-                            {card.description.slice(0, 40) +
-                              (card.description.length > 40 ? '...' : '')}
+                            {(() => {
+                              const clean = stripHtml(card.description);
+                              return clean.length > 50
+                                ? `${clean.slice(0, 50)}...`
+                                : clean;
+                            })()}
                           </p>
                         </div>
 
