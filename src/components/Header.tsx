@@ -30,8 +30,6 @@ export function Header({ categories }: Props) {
   const menuRef = useRef<HTMLDetailsElement>(null);
   const cartRef = useRef<HTMLButtonElement>(null);
   const headerRef = useRef<HTMLElement>(null);
-  const lastScrollYRef = useRef(0);
-  const scrollTickRef = useRef(false);
   const compareCount = useCompareStore((state) => state.items.length);
   const wishlistCount = useWishlistStore((state) => state.items.length);
   const [mobileDrawerTab, setMobileDrawerTab] = useState<'categories' | 'menu'>(
@@ -41,7 +39,6 @@ export function Header({ categories }: Props) {
   const [activeCategorySlug, setActiveCategorySlug] = useState(
     categories[0]?.slug ?? '',
   );
-  const [isHidden, setIsHidden] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
   const activeCategory =
@@ -126,44 +123,6 @@ export function Header({ categories }: Props) {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    const updateVisibility = () => {
-      const currentScrollY = window.scrollY;
-      const previousScrollY = lastScrollYRef.current;
-      const delta = currentScrollY - previousScrollY;
-      const nearTop = currentScrollY <= Math.max(24, headerHeight * 0.35);
-
-      if (nearTop) {
-        setIsHidden(false);
-      } else if (delta > 10) {
-        setIsHidden(true);
-      } else if (delta < -10) {
-        setIsHidden(false);
-      }
-
-      if (delta > 10 && !nearTop) {
-        if (categoriesRef.current) categoriesRef.current.open = false;
-        if (menuRef.current) menuRef.current.open = false;
-
-      }
-
-      lastScrollYRef.current = currentScrollY;
-      scrollTickRef.current = false;
-    };
-
-    const onScroll = () => {
-      if (scrollTickRef.current) return;
-
-      scrollTickRef.current = true;
-      window.requestAnimationFrame(updateVisibility);
-    };
-
-    lastScrollYRef.current = window.scrollY;
-    window.addEventListener('scroll', onScroll, { passive: true });
-
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [headerHeight]);
-
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
     if (href === '/shop')
@@ -211,7 +170,7 @@ export function Header({ categories }: Props) {
   return (
     <header
       ref={headerRef}
-      className={`fixed inset-x-0 top-0 z-40 has-[details[open]]:z-60 has-[[data-search-open]]:z-60 w-full border-b border-border/50 bg-background/75 text-foreground shadow-[0_12px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl supports-backdrop-filter:bg-background/60 motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out motion-reduce:transition-none ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}
+      className="fixed inset-x-0 top-0 z-40 has-[details[open]]:z-60 has-[[data-search-open]]:z-60 w-full border-b border-border/50 bg-background/75 text-foreground shadow-[0_12px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl supports-backdrop-filter:bg-background/60"
     >
       {/* 1st layer */}
       <Container>
@@ -222,7 +181,6 @@ export function Header({ categories }: Props) {
             onToggle={(event) => {
               const open = event.currentTarget.open;
               setIsMobileMenuOpen(open);
-              if (open) setIsHidden(false);
             }}
           >
             <summary className="list-none cursor-pointer outline-none [&::-webkit-details-marker]:hidden">
