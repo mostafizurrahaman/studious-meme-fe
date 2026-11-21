@@ -21,7 +21,7 @@ const MainLayout = async ({ children }: { children: React.ReactNode }) => {
   ]);
 
   const categories = Array.isArray(categoriesResult?.data)
-    ? categoriesResult.data.map((item) =>
+    ? categoriesResult.data.map(item =>
         mapBackendCategoryToStorefrontCategory(item as BackendCategory),
       )
     : // .slice(0, 12)
@@ -35,14 +35,14 @@ const MainLayout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div>
-      <StorefrontHeader categories={categories.slice(0, 14)} />
+      <StorefrontHeader categories={categories} />
       <main
         style={{
           paddingTop:
             'var(--storefront-header-height, clamp(120px, 12vw, 160px))',
         }}
       >
-        <FloatingCategoryRail categories={categories.slice(0, 12)} />
+        <FloatingCategoryRail categories={categories} />
         <div className="lg:pl-18 2xl:pl-0">
           <Container>
             <div className="min-h-screen">{children}</div>

@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChevronRight, Menu } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -17,6 +17,8 @@ export function FloatingCategoryRail({ categories }: Props) {
   const [activeCategorySlug, setActiveCategorySlug] = useState(
     categories[0]?.slug ?? '',
   );
+  const [hoveredItemTop, setHoveredItemTop] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const activeCategory = useMemo(
     () =>
@@ -40,53 +42,80 @@ export function FloatingCategoryRail({ categories }: Props) {
     return () => window.removeEventListener('resize', syncViewportHeight);
   }, []);
 
-  const flyoutTop = 6 + 38 + activeCategoryIndex * 38;
+  const handleCategoryHover = (slug: string, element: HTMLElement) => {
+    setActiveCategorySlug(slug);
+    if (containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const itemRect = element.getBoundingClientRect();
+      setHoveredItemTop(itemRect.top - containerRect.top);
+    }
+  };
+
+  const flyoutItemTop = hoveredItemTop ?? (6 + 38 + activeCategoryIndex * 38);
   const estimatedPanelHeight = Math.min(
-    500,
+    480,
     94 + (activeCategory?.subCategories?.length ?? 0) * 38,
   );
-  const panelMaxHeight = Math.min(
-    estimatedPanelHeight,
-    Math.max(viewportHeight - 40, 320),
+
+  // Measure container distance from top of viewport to ensure flyout stays on screen
+  const containerTop = containerRef.current?.getBoundingClientRect().top ?? 140;
+  const availableHeightBelow = Math.max(
+    260,
+    viewportHeight ? viewportHeight - containerTop - 20 : 500,
   );
-  const panelTop = viewportHeight
-    ? Math.max(
-        0,
-        Math.min(flyoutTop, viewportHeight - 20 - estimatedPanelHeight),
-      )
-    : flyoutTop;
-  const connectorTop = Math.max(0, flyoutTop - panelTop);
+
+  const panelMaxHeight = Math.min(estimatedPanelHeight, availableHeightBelow);
+  const panelTop = Math.max(
+    0,
+    Math.min(flyoutItemTop, availableHeightBelow - panelMaxHeight),
+  );
+  const connectorTop = Math.max(
+    8,
+    Math.min(flyoutItemTop - panelTop + 10, panelMaxHeight - 28),
+  );
 
   return (
     <div
+      ref={containerRef}
       className="fixed left-2 top-(--storefront-header-height,clamp(120px,12vw,160px)) z-30 hidden lg:block"
       onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseLeave={() => {
+        setOpen(false);
+        setHoveredItemTop(null);
+      }}
     >
       <Card
-        className={`overflow-hidden rounded-xl border border-border/70 bg-background shadow-xl ring-1 ring-primary/10 backdrop-blur transition-[width] duration-200 ${
-          // open ? 'w-md' : 'w-11'
+        className={`overflow-hidden rounded-xl border border-border/70 bg-background shadow-xl ring-1 ring-primary/10 backdrop-blur transition-[width] duration-200 flex flex-col ${
           open ? 'w-94' : 'w-11'
         }`}
+        style={{
+          maxHeight: 'calc(100vh - var(--storefront-header-height, 140px) - 24px)',
+        }}
       >
-        <div className="grid gap-0.5 p-1.5">
-          <div
-            className={`flex h-9 items-center gap-2 rounded-full transition ${
-              open ? 'pointer-events-none opacity-0' : 'opacity-100'
-            }`}
-          >
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
-              <Menu className="size-3.5" />
-            </span>
-          </div>
+        <div
+          className={`flex h-9 shrink-0 items-center gap-2 rounded-full p-1.5 pb-0 transition ${
+            open ? 'pointer-events-none opacity-0 h-0 overflow-hidden p-0' : 'opacity-100'
+          }`}
+        >
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+            <Menu className="size-3.5" />
+          </span>
+        </div>
 
+        <div
+          className={`min-h-0 flex-1 overflow-y-auto overscroll-contain p-1.5 grid gap-0.5 ${
+            open
+              ? '[scrollbar-width:thin] [scrollbar-color:oklch(0.889_0.012_252.4)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/40'
+              : '[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
+          }`}
+        >
           {categories.map(category => (
             <Link
               key={category.name}
               href={category.href}
-              onMouseEnter={() => setActiveCategorySlug(category.slug)}
-              onFocus={() => setActiveCategorySlug(category.slug)}
-              className={`group/category flex h-9 items-center gap-3 rounded-lg border border-transparent px-1.5 transition ${
+              onMouseEnter={(e) => handleCategoryHover(category.slug, e.currentTarget)}
+              onFocus={(e) => handleCategoryHover(category.slug, e.currentTarget)}
+              className={`group/category flex h-9 shrink-0 items-center gap-3 rounded-lg border border-transparent px-1.5 transition ${
                 activeCategorySlug === category.slug
                   ? 'border-primary/15 bg-primary/10 text-primary shadow-[inset_3px_0_0_var(--primary)]'
                   : 'text-foreground/80 hover:border-primary/10 hover:bg-primary/5 hover:text-primary'
@@ -126,16 +155,18 @@ export function FloatingCategoryRail({ categories }: Props) {
               ) : null}
             </Link>
           ))}
-
-          <Link
-            href="/main-categories"
-            className={`mt-1 flex h-9 items-center rounded-lg border border-primary/15 bg-primary/5 px-3 text-[13px] font-bold text-primary hover:bg-primary/10 whitespace-nowrap transition ${
-              open ? 'opacity-100' : 'pointer-events-none opacity-0'
-            }`}
-          >
-            See all Categories
-          </Link>
         </div>
+
+        {open && (
+          <div className="shrink-0 p-1.5 pt-1 border-t border-border/50">
+            <Link
+              href="/main-categories"
+              className="flex h-9 items-center justify-center rounded-lg border border-primary/15 bg-primary/5 px-3 text-[13px] font-bold text-primary hover:bg-primary/10 whitespace-nowrap transition"
+            >
+              See all Categories ({categories.length})
+            </Link>
+          </div>
+        )}
       </Card>
       {open && activeCategory?.subCategories?.length ? (
         <div
@@ -164,7 +195,7 @@ export function FloatingCategoryRail({ categories }: Props) {
                 {activeCategory.subCategories.length} subcategories
               </div>
             </div>
-            <div className="grid min-h-0 flex-1 gap-1 overflow-y-auto pr-1">
+            <div className="grid min-h-0 flex-1 gap-1 overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:oklch(0.889_0.012_252.4)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/40">
               {activeCategory.subCategories.map(subCategory => (
                 <Link
                   key={subCategory.slug}

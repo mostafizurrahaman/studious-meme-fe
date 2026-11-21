@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag, updateTag } from 'next/cache';
 import { requestBackendJson } from '@/lib/backend-api';
 import { CACHE_REVALIDATE } from '@/lib/cache-revalidate';
 import { CACHE_TAGS } from '@/lib/cache-tags';
@@ -455,27 +455,62 @@ function toFormData(payload: Record<string, unknown>) {
   return formData;
 }
 
+function revalidateProductCaches(slug: string, nextSlug?: string) {
+  const tagsToInvalidate = [
+    CACHE_TAGS.PRODUCTS,
+    CACHE_TAGS.SEARCH,
+    CACHE_TAGS.HOME_CONTENT,
+    CACHE_TAGS.FEATURED_PRODUCTS,
+    CACHE_TAGS.LATEST_PRODUCTS,
+    CACHE_TAGS.PRODUCT(slug),
+  ];
+
+  if (nextSlug && nextSlug !== slug) {
+    tagsToInvalidate.push(CACHE_TAGS.PRODUCT(nextSlug));
+  }
+
+  for (const tag of tagsToInvalidate) {
+    try {
+      updateTag(tag);
+    } catch {
+      revalidateTag(tag, { expire: 0 });
+    }
+  }
+
+  try {
+    revalidatePath('/shop');
+    revalidatePath('/');
+    revalidatePath('/category', 'layout');
+    revalidatePath('/shop-by-brands');
+    revalidatePath(`/product/${slug}`);
+    if (nextSlug && nextSlug !== slug) {
+      revalidatePath(`/product/${nextSlug}`);
+    }
+    revalidatePath('/dashboard/admin/products');
+    revalidatePath('/dashboard/super-admin/products');
+  } catch (error) {
+    console.error('Failed to revalidate paths:', error);
+  }
+}
+
 export const createProduct = async (
   payload: ProductMutationPayload,
 ): Promise<BackendEnvelope<BackendProduct>> => {
   const accessToken = await getValidAccessTokenForServerActions();
+  const slug = slugify(payload.slug);
   const result = await requestBackendJson<BackendEnvelope<BackendProduct>>(
     '/product/products',
     {
       method: 'POST',
       body: toFormData({
         ...payload,
-        slug: slugify(payload.slug),
+        slug,
       }),
       token: accessToken ?? undefined,
     },
   );
 
-  revalidateTag(CACHE_TAGS.PRODUCTS, 'max');
-  if (result.data?.slug) {
-    revalidateTag(CACHE_TAGS.PRODUCT(result.data.slug), 'max');
-  }
-  revalidateTag(CACHE_TAGS.SEARCH, 'max');
+  revalidateProductCaches(result.data?.slug || slug);
   return result;
 };
 
@@ -497,20 +532,11 @@ export const updateProduct = async (
     },
   );
 
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  revalidateTag(CACHE_TAGS.PRODUCTS, 'max');
-  revalidateTag(CACHE_TAGS.PRODUCT(slug), 'max');
-  revalidateTag(CACHE_TAGS.PRODUCT(nextSlug), 'max');
-  revalidateTag(CACHE_TAGS.SEARCH, 'max');
-  revalidatePath('/dashboard/admin/products');
-  revalidatePath('/dashboard/super-admin/products');
-
-  revalidatePath(`/product/${slug}`);
-  revalidatePath(`/product/${nextSlug}`);
+  revalidateProductCaches(slug, nextSlug);
 
   return result;
 };
+
 export const toggleProductActive = async (
   slug: string,
   isActive: boolean,
@@ -530,9 +556,7 @@ export const deleteProduct = async (
     },
   );
 
-  revalidateTag(CACHE_TAGS.PRODUCTS, 'max');
-  revalidateTag(CACHE_TAGS.PRODUCT(slug), 'max');
-  revalidateTag(CACHE_TAGS.SEARCH, 'max');
+  revalidateProductCaches(slug);
   return result;
 };
 
