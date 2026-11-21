@@ -23,16 +23,25 @@ export function trackFacebookPixelEvent(
   eventName: string,
   params?: FacebookPixelEventParams,
 ) {
-  if (typeof window === 'undefined' || typeof window.fbq !== 'function') {
+  if (typeof window === 'undefined') {
     return;
   }
 
-  if (params && Object.keys(params).length > 0) {
-    window.fbq('track', eventName, params);
-    return;
-  }
+  const fire = () => {
+    if (typeof window.fbq === 'function') {
+      if (params && Object.keys(params).length > 0) {
+        window.fbq('track', eventName, params);
+      } else {
+        window.fbq('track', eventName);
+      }
+      return true;
+    }
+    return false;
+  };
 
-  window.fbq('track', eventName);
+  if (!fire()) {
+    setTimeout(fire, 500);
+  }
 }
 
 export function trackFacebookPageView() {

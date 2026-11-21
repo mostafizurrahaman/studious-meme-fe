@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import Script from 'next/script';
 import { usePathname } from 'next/navigation';
 import {
   buildFacebookPixelInitScript,
@@ -13,15 +12,15 @@ import {
 export function FacebookPixel() {
   const pixelId = getFacebookPixelId();
   const pathname = usePathname();
-  const didMount = useRef(false);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     if (!isFacebookPixelEnabled()) {
       return;
     }
 
-    if (!didMount.current) {
-      didMount.current = true;
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
       return;
     }
 
@@ -34,9 +33,12 @@ export function FacebookPixel() {
 
   return (
     <>
-      <Script id="facebook-pixel" strategy="afterInteractive">
-        {buildFacebookPixelInitScript(pixelId)}
-      </Script>
+      <script
+        id="facebook-pixel"
+        dangerouslySetInnerHTML={{
+          __html: buildFacebookPixelInitScript(pixelId),
+        }}
+      />
       <noscript>
         <img
           height="1"
