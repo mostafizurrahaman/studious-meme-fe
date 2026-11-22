@@ -1,3 +1,4 @@
+import Script from 'next/script';
 import {
   buildFacebookPixelInitScript,
   getFacebookPixelId,
@@ -12,8 +13,9 @@ export function FacebookPixelScript() {
 
   return (
     <>
-      <script
-        id="facebook-pixel"
+      <Script
+        id="facebook-pixel-init"
+        strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: buildFacebookPixelInitScript(pixelId),
         }}

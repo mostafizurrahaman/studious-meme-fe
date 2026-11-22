@@ -46,17 +46,17 @@ export default function RootLayout({
       )}
     >
       <head>
-        <FacebookPixelScript />
-        <GoogleAnalytics />
-        <GoogleTagManager />
         <SeoScripts data={siteSchemas} />
-        {process.env.NODE_ENV === 'production' && <MicrosoftClarity />}
       </head>
       <body
         suppressHydrationWarning
         className="storefront-layout min-h-full flex flex-col bg-background text-foreground"
       >
+        <FacebookPixelScript />
         <FacebookPixel />
+        <GoogleAnalytics />
+        <GoogleTagManager />
+        {process.env.NODE_ENV === 'production' && <MicrosoftClarity />}
 
         <UserProvider>
           <ServiceWorkerRegistration />
