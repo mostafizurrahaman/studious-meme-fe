@@ -3,6 +3,7 @@ import { Poppins, Inter } from 'next/font/google';
 import './globals.css';
 import './spinner.css';
 import { SeoScripts } from '@/components/SeoScripts';
+import { FacebookPixelScript } from '@/components/FacebookPixelScript';
 import { FacebookPixel } from '@/components/FacebookPixel';
 import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 import { GoogleTagManager } from '@/components/GoogleTagManager';
@@ -44,16 +45,17 @@ export default function RootLayout({
         inter.variable,
       )}
     >
+      <head>
+        <FacebookPixelScript />
+        <GoogleAnalytics />
+        <GoogleTagManager />
+        <SeoScripts data={siteSchemas} />
+        {process.env.NODE_ENV === 'production' && <MicrosoftClarity />}
+      </head>
       <body
         suppressHydrationWarning
         className="storefront-layout min-h-full flex flex-col bg-background text-foreground"
       >
-        {process.env.NODE_ENV === 'production' && <MicrosoftClarity />}
-
-        <GoogleAnalytics />
-        <GoogleTagManager />
-
-        <SeoScripts data={siteSchemas} />
         <FacebookPixel />
 
         <UserProvider>
